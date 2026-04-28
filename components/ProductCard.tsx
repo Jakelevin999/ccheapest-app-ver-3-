@@ -9,20 +9,20 @@ function getColor(score?: number) {
 }
 
 export default function ProductCard({ product }: any) {
-  function add() {
-    addToCart(product);
-  }
+  function add() { addToCart(product); }
 
   return <div className="card product" style={{display:'flex', flexDirection:'column', justifyContent:'space-between', height:'100%'}}>
     <div>
       {product.image ? <img src={product.image} alt={product.title} /> : <div className="imagePlaceholder" />}
       <h3>{product.title}</h3>
       <p className="price">{product.price}</p>
-      <div style={{display:'flex', flexDirection:'column', gap:4}}>
+
+      <div style={{display:'flex', gap:10, marginTop:6}}>
         <span style={{color:getColor(product.dealRating)}}>Deal {product.dealRating || 5}/10</span>
         <span style={{color:getColor(product.cheapTrustRating)}}>Trust {product.cheapTrustRating || 6}/10</span>
       </div>
     </div>
+
     <div style={{display:'flex', gap:8, marginTop:12}}>
       <button className="button" style={{flex:1}} onClick={add}>Add to Cart</button>
       <a className="button secondary" style={{flex:1}} href={product.link} target="_blank">View</a>
