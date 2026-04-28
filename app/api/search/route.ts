@@ -6,6 +6,10 @@ function extractPrice(v=''){const m=String(v).replace(/,/g,'').match(/\$?([0-9]+
 
 function cheapTrust(source='',link=''){const t=(source+link).toLowerCase();if(/amazon|walmart|target|nike|apple|bestbuy/.test(t))return 9;if(/ebay|depop/.test(t))return 7;return 6;}
 
+function bestDirectLink(r:any){
+  return r.product_link || r.link || r.serpapi_product_api || r.serpapi_link || '';
+}
+
 async function shoppingSearch(query:string,page=1){
   const key=process.env.SERPAPI_KEY;
   if(!key)return [];
@@ -14,24 +18,26 @@ async function shoppingSearch(query:string,page=1){
   url.searchParams.set('q',query);
   url.searchParams.set('api_key',key);
   url.searchParams.set('start',String((page-1)*20));
+  url.searchParams.set('gl','us');
+  url.searchParams.set('hl','en');
 
   const res=await fetch(url.toString());
   const data=await res.json();
 
   return (data.shopping_results||[])
-    .filter((r:any)=>r.title && (r.price||r.extracted_price) && (r.link||r.product_link))
+    .filter((r:any)=>r.title && (r.price||r.extracted_price) && bestDirectLink(r))
     .map((r:any)=>{
       const priceNum=extractPrice(r.price||r.extracted_price);
-      const link=r.link||r.product_link;
+      const direct=bestDirectLink(r);
       return {
         title:r.title,
         price:r.price||`$${priceNum}`,
         extractedPrice:priceNum,
-        source:r.source||'Store',
-        link,
-        image:r.thumbnail||'',
-        dealRating:Math.min(10,Math.max(1,10-(priceNum/50))),
-        cheapTrustRating:cheapTrust(r.source,link)
+        source:r.source||r.seller||'Store',
+        link:direct,
+        image:r.thumbnail||r.serpapi_thumbnail||'',
+        dealRating:Math.round(Math.min(10,Math.max(1,10-(priceNum/50)))),
+        cheapTrustRating:cheapTrust(r.source||r.seller||'',direct)
       }
     })
     .sort((a:any,b:any)=>a.extractedPrice-b.extractedPrice);
@@ -39,7 +45,6 @@ async function shoppingSearch(query:string,page=1){
 
 export async function POST(req:Request){
   const {description,url,page}=await req.json();
-
   let query='';
 
   if(description && description.trim().length>2){
@@ -52,6 +57,5 @@ export async function POST(req:Request){
   }
 
   const results=await shoppingSearch(query,page||1);
-
   return NextResponse.json({results});
 }
