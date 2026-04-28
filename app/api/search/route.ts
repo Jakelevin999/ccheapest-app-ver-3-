@@ -1,129 +1,57 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function cleanText(v=''){return v.replace(/\s+/g,' ').trim();}
 
-function cleanText(value = '') {
-  return value.replace(/\s+/g, ' ').replace(/access to this page has been denied/gi, '').trim();
+function extractPrice(v=''){const m=String(v).replace(/,/g,'').match(/\$?([0-9]+(?:\.[0-9]{1,2})?)/);return m?Number(m[1]):0;}
+
+function cheapTrust(source='',link=''){const t=(source+link).toLowerCase();if(/amazon|walmart|target|nike|apple|bestbuy/.test(t))return 9;if(/ebay|depop/.test(t))return 7;return 6;}
+
+async function shoppingSearch(query:string,page=1){
+  const key=process.env.SERPAPI_KEY;
+  if(!key)return [];
+  const url=new URL('https://serpapi.com/search.json');
+  url.searchParams.set('engine','google_shopping');
+  url.searchParams.set('q',query);
+  url.searchParams.set('api_key',key);
+  url.searchParams.set('start',String((page-1)*20));
+
+  const res=await fetch(url.toString());
+  const data=await res.json();
+
+  return (data.shopping_results||[])
+    .filter((r:any)=>r.title && (r.price||r.extracted_price) && (r.link||r.product_link))
+    .map((r:any)=>{
+      const priceNum=extractPrice(r.price||r.extracted_price);
+      const link=r.link||r.product_link;
+      return {
+        title:r.title,
+        price:r.price||`$${priceNum}`,
+        extractedPrice:priceNum,
+        source:r.source||'Store',
+        link,
+        image:r.thumbnail||'',
+        dealRating:Math.min(10,Math.max(1,10-(priceNum/50))),
+        cheapTrustRating:cheapTrust(r.source,link)
+      }
+    })
+    .sort((a:any,b:any)=>a.extractedPrice-b.extractedPrice);
 }
 
-function extractPrice(value = '') {
-  const match = String(value).replace(/,/g, '').match(/\$?([0-9]+(?:\.[0-9]{1,2})?)/);
-  return match ? Number(match[1]) : 0;
-}
+export async function POST(req:Request){
+  const {description,url,page}=await req.json();
 
-function scoreDeal(price: number, average: number) {
-  if (!price || !average) return 5;
-  const ratio = price / average;
-  if (ratio <= 0.55) return 10;
-  if (ratio <= 0.65) return 9;
-  if (ratio <= 0.78) return 8;
-  if (ratio <= 0.9) return 7;
-  if (ratio <= 1.05) return 6;
-  if (ratio <= 1.2) return 5;
-  return 4;
-}
+  let query='';
 
-function cheapTrust(source = '', link = '') {
-  const text = `${source} ${link}`.toLowerCase();
-  if (/bestbuy|apple|target|walmart|amazon|adorama|bhphotovideo|b&h|nike|zara|hm.com|uniqlo|costco|samsclub/.test(text)) return 9;
-  if (/ebay|depop|poshmark|mercari|goat|stockx/.test(text)) return 7;
-  if (/shein|temu|aliexpress/.test(text)) return 5;
-  return 6;
-}
-
-function queryFromUrl(rawUrl: string) {
-  try {
-    const u = new URL(rawUrl);
-    const pathWords = decodeURIComponent(u.pathname)
-      .replace(/[-_+\/]+/g, ' ')
-      .replace(/\b(product|products|p|dp|item|shop|collections|mens|womens|store|detail|sku)\b/gi, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-    return cleanText(pathWords || u.hostname.replace('www.', ''));
-  } catch {
-    return cleanText(rawUrl);
+  if(description && description.trim().length>2){
+    query=cleanText(description)+' buy';
+  }else if(url){
+    try{
+      const u=new URL(url);
+      query=cleanText(u.pathname.replace(/[-_/]/g,' '));
+    }catch{query=url;}
   }
-}
 
-async function identifyFromImage(imageData: string) {
-  try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: [
-        { type: 'text', text: 'Identify this retail product for shopping. Return JSON only with searchQuery, productType, brandGuess, color, and styleKeywords array. Make searchQuery concise and product-specific.' },
-        { type: 'image_url', image_url: { url: imageData } }
-      ]}],
-      response_format: { type: 'json_object' }
-    });
-    return JSON.parse(response.choices[0].message.content || '{}');
-  } catch {
-    return { productType: 'product', brandGuess: '', color: '', styleKeywords: ['shopping item'], searchQuery: 'popular affordable product buy' };
-  }
-}
+  const results=await shoppingSearch(query,page||1);
 
-async function identifyFromUrl(url: string) {
-  const q = queryFromUrl(url);
-  return { productType: 'product', brandGuess: '', color: '', styleKeywords: [q], searchQuery: `${q} buy` };
-}
-
-function fallbackResults(query: string) {
-  const q = encodeURIComponent(query || 'product');
-  const short = query || 'Product';
-  return [
-    { title: `${short} on Google Shopping`, price: 'Live prices', extractedPrice: 0, source: 'Google Shopping', link: `https://www.google.com/search?tbm=shop&q=${q}`, image: 'https://placehold.co/600x600/15151d/ffffff?text=Shopping', dealRating: 7, cheapTrustRating: 8, isLiveResult: false },
-    { title: `${short} on Amazon`, price: 'Compare', extractedPrice: 0, source: 'Amazon', link: `https://www.amazon.com/s?k=${q}`, image: 'https://placehold.co/600x600/15151d/ffffff?text=Amazon', dealRating: 6, cheapTrustRating: 9, isLiveResult: false },
-    { title: `${short} on eBay`, price: 'Compare', extractedPrice: 0, source: 'eBay', link: `https://www.ebay.com/sch/i.html?_nkw=${q}`, image: 'https://placehold.co/600x600/15151d/ffffff?text=eBay', dealRating: 8, cheapTrustRating: 7, isLiveResult: false },
-    { title: `${short} on Walmart`, price: 'Compare', extractedPrice: 0, source: 'Walmart', link: `https://www.walmart.com/search?q=${q}`, image: 'https://placehold.co/600x600/15151d/ffffff?text=Walmart', dealRating: 7, cheapTrustRating: 9, isLiveResult: false }
-  ];
-}
-
-async function shoppingSearch(query: string) {
-  const apiKey = process.env.SERPAPI_KEY || process.env.SERPAPI_API_KEY;
-  if (!apiKey) return fallbackResults(query);
-
-  const endpoint = new URL('https://serpapi.com/search.json');
-  endpoint.searchParams.set('engine', 'google_shopping');
-  endpoint.searchParams.set('q', query);
-  endpoint.searchParams.set('api_key', apiKey);
-  endpoint.searchParams.set('gl', 'us');
-  endpoint.searchParams.set('hl', 'en');
-
-  const res = await fetch(endpoint.toString());
-  const data = await res.json();
-  const raw = (data.shopping_results || []).filter((r: any) => r.title && (r.link || r.product_link));
-  const prices = raw.map((r: any) => extractPrice(r.price || r.extracted_price)).filter(Boolean);
-  const avg = prices.length ? prices.reduce((a: number, b: number) => a + b, 0) / prices.length : 0;
-
-  const live = raw.slice(0, 20).map((r: any) => {
-    const priceNum = extractPrice(r.price || r.extracted_price);
-    const link = r.link || r.product_link;
-    return {
-      title: r.title,
-      price: r.price || (priceNum ? `$${priceNum}` : 'Check price'),
-      extractedPrice: priceNum,
-      source: r.source || r.seller || 'Store',
-      link,
-      image: r.thumbnail || r.serpapi_thumbnail || '',
-      reason: '',
-      dealRating: scoreDeal(priceNum, avg),
-      cheapTrustRating: cheapTrust(r.source || r.seller || '', link),
-      isLiveResult: true
-    };
-  });
-
-  return live.length ? live : fallbackResults(query);
-}
-
-export async function POST(req: Request) {
-  try {
-    const { url, imageData } = await req.json();
-    const identified = imageData ? await identifyFromImage(imageData) : await identifyFromUrl(url || '');
-    const searchQuery = cleanText(identified.searchQuery || 'product buy');
-    const results = await shoppingSearch(searchQuery);
-    return NextResponse.json({ identified: { ...identified, searchQuery }, results, needsShoppingApi: !process.env.SERPAPI_KEY && !process.env.SERPAPI_API_KEY });
-  } catch (error: any) {
-    const searchQuery = 'popular affordable product buy';
-    return NextResponse.json({ identified: { searchQuery }, results: fallbackResults(searchQuery), warning: error.message || 'Fallback results shown' });
-  }
+  return NextResponse.json({results});
 }
