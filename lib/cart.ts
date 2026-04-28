@@ -12,11 +12,13 @@ export function addToCart(product: ShoppingResult) {
   const exists = items.some(item => item.link === product.link);
   const next = exists ? items : [product, ...items];
   localStorage.setItem(CART_KEY, JSON.stringify(next));
+  window.dispatchEvent(new Event('cheaperfind:cart-changed'));
   return next;
 }
 
 export function removeFromCart(link: string) {
   const next = getCart().filter(item => item.link !== link);
   localStorage.setItem(CART_KEY, JSON.stringify(next));
+  window.dispatchEvent(new Event('cheaperfind:cart-changed'));
   return next;
 }
