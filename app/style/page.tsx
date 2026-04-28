@@ -21,12 +21,12 @@ export default function StylePage() {
   const [warned, setWarned] = useState(false);
 
   function buildQuery() {
-    const parts = [style.trim()];
+    const parts = [style.trim(), 'clothes'];
     if (gender !== 'Any') parts.unshift(gender);
     if (category !== 'Clothes') parts.push(category);
     if (category === 'Shoes' && shoeSize !== 'Any') parts.push(`shoe size ${shoeSize}`);
     if (category !== 'Shoes' && size !== 'Any') parts.push(`size ${size}`);
-    parts.push('product with price buy');
+    parts.push('apparel fashion outfit wearable only');
     return parts.filter(Boolean).join(' ');
   }
 
@@ -35,7 +35,7 @@ export default function StylePage() {
     const res = await fetch('/api/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description: query, page: Math.floor(nextIndex / 20) + 1 })
+      body: JSON.stringify({ description: query, mode: 'style', page: Math.floor(nextIndex / 20) + 1 })
     });
     const data = await res.json();
     const next = data.results || [];
