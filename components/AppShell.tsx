@@ -5,9 +5,10 @@ import { ThemeProvider } from './ThemeProvider';
 
 const tabs = [
   { href: '/', label: 'Search', icon: '⌕' },
-  { href: '/results', label: 'Results', icon: '◇' },
+  { href: '/purchases', label: 'Purchases', icon: '🛍' },
+  { href: '/travel', label: 'Travel', icon: '✈' },
+  { href: '/style', label: 'Style', icon: '✦' },
   { href: '/favorites', label: 'Favorites', icon: '♡' },
-  { href: '/premium', label: 'Premium', icon: '★' },
   { href: '/settings', label: 'Settings', icon: '⚙' }
 ];
 
