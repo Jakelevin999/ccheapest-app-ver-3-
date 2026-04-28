@@ -2,8 +2,11 @@
 import { useEffect, useState } from 'react';
 import { addToCart } from '../../lib/cart';
 
+const filters = ['Men', 'Women', 'Shoes', 'Bags', 'Accessories', 'Outfits'];
+
 export default function StylePage() {
   const [style, setStyle] = useState('');
+  const [filter, setFilter] = useState('Men');
   const [items, setItems] = useState<any[]>([]);
   const [index, setIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -12,7 +15,7 @@ export default function StylePage() {
     const res = await fetch('/api/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: style })
+      body: JSON.stringify({ url: `${filter} ${style}` })
     });
     const data = await res.json();
     setItems(data.results || []);
@@ -54,15 +57,20 @@ export default function StylePage() {
   const item = items[index];
 
   return (
-    <div className="stylePage">
+    <div className="stylePage" style={{minHeight:'70vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
       <h1>Style</h1>
-      <div className="card searchBox">
+      <div className="card searchBox" style={{width:'min(760px, 100%)'}}>
         <input className="input" placeholder="Describe your style" value={style} onChange={e => setStyle(e.target.value)} />
+        <div className="filterRow">
+          {filters.map(f => (
+            <button key={f} className={filter === f ? 'filter active' : 'filter'} onClick={() => setFilter(f)}>{f}</button>
+          ))}
+        </div>
         <button className="button" onClick={generate} disabled={!style.trim()}>Generate</button>
       </div>
 
       {item ? (
-        <div className="swipeWrap">
+        <div className="swipeWrap" style={{width:'min(520px, 100%)'}}>
           <div className="card swipeCard" onTouchStart={e => setTouchStart(e.touches[0].clientX)} onTouchEnd={onTouchEnd}>
             {item.image ? <img src={item.image} alt={item.title} /> : <div className="imagePlaceholder" />}
             <h3>{item.title}</h3>
@@ -76,7 +84,7 @@ export default function StylePage() {
           <p className="muted swipeHint">Desktop: ← skip / → add. Phone: swipe left or right.</p>
         </div>
       ) : items.length > 0 ? (
-        <div className="card empty"><h2>Done</h2><p className="muted">You reached the end. Generate again for more.</p></div>
+        <div className="card empty"><h2>Done</h2></div>
       ) : null}
     </div>
   );
