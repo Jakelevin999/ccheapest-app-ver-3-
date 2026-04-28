@@ -20,6 +20,8 @@ export default function StylePage() {
   const [swipeCount, setSwipeCount] = useState(0);
   const [warned, setWarned] = useState(false);
 
+  const selectedSize = category === 'Shoes' ? shoeSize : size;
+
   function buildQuery() {
     const parts = [style.trim(), 'clothes'];
     if (gender !== 'Any') parts.unshift(gender);
@@ -38,7 +40,7 @@ export default function StylePage() {
       body: JSON.stringify({ description: query, mode: 'style', page: Math.floor(nextIndex / 20) + 1 })
     });
     const data = await res.json();
-    const next = data.results || [];
+    const next = (data.results || []).map((p:any) => ({...p, selectedSize: selectedSize !== 'Any' ? selectedSize : ''}));
     setItems(current => [...current, ...next]);
   }
 
@@ -104,6 +106,7 @@ export default function StylePage() {
           {item.image ? <img src={item.image} alt={item.title} /> : <div className="imagePlaceholder" />}
           <h3>{item.title}</h3>
           <p className="price">{item.price || 'Check price'}</p>
+          {item.selectedSize ? <p className="muted">Size: {item.selectedSize}</p> : null}
           <p className="muted">{item.source}</p>
           <div className="row"><button className="button secondary" onClick={() => advance(false)}>Skip</button><button className="button" onClick={() => advance(true)}>Add to Cart</button></div>
         </div>
