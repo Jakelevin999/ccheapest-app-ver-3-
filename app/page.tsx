@@ -30,16 +30,14 @@ export default function Home() {
     } finally { setLoading(false); }
   }
 
-  return <>
-    <section className="hero compactHero">
-      <h1>CheaperFind</h1>
-    </section>
-    <section className="card searchBox">
+  return <section className="shopHome">
+    <h1>Shop</h1>
+    <div className="card searchBox shopCard">
       <input className="input" placeholder="Describe product" value={description} onChange={e => setDescription(e.target.value)} />
       <input className="input" placeholder="Paste product link" value={url} onChange={e => setUrl(e.target.value)} />
       <label className="uploadBox"><input type="file" accept="image/*" onChange={e => onFile(e.target.files?.[0])} /><span>Upload photo</span></label>
       {imageData && <img src={imageData} alt="preview" className="preview" />}
       <button className="button" onClick={search} disabled={loading || (!description && !url && !imageData)}>{loading ? 'Searching...' : 'Search'}</button>
-    </section>
-  </>;
+    </div>
+  </section>;
 }
