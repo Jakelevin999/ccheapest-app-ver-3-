@@ -2,20 +2,24 @@
 import { useEffect, useState } from 'react';
 import { addToCart } from '../../lib/cart';
 
-const filters = ['Men', 'Women', 'Shoes', 'Bags', 'Accessories', 'Outfits'];
+const categories = ['Men', 'Women', 'Shoes', 'Bags', 'Accessories', 'Outfits'];
+const sizes = ['Any', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '28', '30', '32', '34', '36', '7', '8', '9', '10', '11', '12', '13'];
 
 export default function StylePage() {
   const [style, setStyle] = useState('');
-  const [filter, setFilter] = useState('Men');
+  const [category, setCategory] = useState('Men');
+  const [size, setSize] = useState('Any');
   const [items, setItems] = useState<any[]>([]);
   const [index, setIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
 
   async function generate() {
+    const sizePart = size === 'Any' ? '' : ` size ${size}`;
+    const query = `${category} ${style}${sizePart} cheap product`;
     const res = await fetch('/api/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: `${filter} ${style}` })
+      body: JSON.stringify({ url: query })
     });
     const data = await res.json();
     setItems(data.results || []);
@@ -62,8 +66,13 @@ export default function StylePage() {
       <div className="card searchBox" style={{width:'min(760px, 100%)'}}>
         <input className="input" placeholder="Describe your style" value={style} onChange={e => setStyle(e.target.value)} />
         <div className="filterRow">
-          {filters.map(f => (
-            <button key={f} className={filter === f ? 'filter active' : 'filter'} onClick={() => setFilter(f)}>{f}</button>
+          {categories.map(f => (
+            <button type="button" key={f} className={category === f ? 'filter active' : 'filter'} onClick={() => setCategory(f)}>{f}</button>
+          ))}
+        </div>
+        <div className="filterRow">
+          {sizes.map(s => (
+            <button type="button" key={s} className={size === s ? 'filter active' : 'filter'} onClick={() => setSize(s)}>{s}</button>
           ))}
         </div>
         <button className="button" onClick={generate} disabled={!style.trim()}>Generate</button>
@@ -81,7 +90,6 @@ export default function StylePage() {
               <button className="button" onClick={addCurrentToCart}>Add to Cart</button>
             </div>
           </div>
-          <p className="muted swipeHint">Desktop: ← skip / → add. Phone: swipe left or right.</p>
         </div>
       ) : items.length > 0 ? (
         <div className="card empty"><h2>Done</h2></div>
