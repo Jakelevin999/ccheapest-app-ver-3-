@@ -3,9 +3,29 @@ import { useEffect, useState } from 'react';
 import { addToCart } from '../../lib/cart';
 
 const genders = ['Any', 'Men', 'Women', 'Unisex'];
-const categories = ['Clothes', 'Shoes', 'Bags', 'Accessories', 'Outfits'];
+const categories = ['Clothes', 'Tops', 'Hoodies', 'Jackets', 'Pants', 'Shorts', 'Dresses', 'Skirts'];
 const clothingSizes = ['Any', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '28', '30', '32', '34', '36'];
-const shoeSizes = ['Any', '6', '7', '8', '9', '10', '11', '12', '13'];
+
+const clothingWords = [
+  'shirt', 't-shirt', 'tee', 'top', 'blouse', 'tank', 'hoodie', 'sweatshirt', 'crewneck',
+  'sweater', 'jacket', 'coat', 'vest', 'pants', 'jeans', 'trousers', 'sweatpants',
+  'shorts', 'dress', 'skirt', 'leggings', 'flannel', 'jersey', 'cardigan', 'clothes',
+  'clothing', 'apparel', 'outfit'
+];
+
+const blockedNonClothingWords = [
+  'phone', 'case', 'charger', 'cable', 'camera', 'laptop', 'tablet', 'headphones', 'speaker',
+  'furniture', 'lamp', 'toy', 'game', 'card', 'pokemon', 'makeup', 'perfume', 'skincare',
+  'bag', 'backpack', 'purse', 'wallet', 'watch', 'jewelry', 'necklace', 'bracelet', 'ring',
+  'shoe', 'shoes', 'sneaker', 'sneakers', 'boot', 'boots', 'sandals', 'hat', 'cap', 'beanie'
+];
+
+function isClothingProduct(product: any) {
+  const text = `${product?.title || ''} ${product?.source || ''}`.toLowerCase();
+  const hasClothingWord = clothingWords.some(word => text.includes(word));
+  const hasBlockedWord = blockedNonClothingWords.some(word => text.includes(word));
+  return hasClothingWord && !hasBlockedWord;
+}
 
 export default function StylePage() {
   const [style, setStyle] = useState('');
@@ -13,7 +33,6 @@ export default function StylePage() {
   const [gender, setGender] = useState('Any');
   const [category, setCategory] = useState('Clothes');
   const [size, setSize] = useState('Any');
-  const [shoeSize, setShoeSize] = useState('Any');
   const [items, setItems] = useState<any[]>([]);
   const [index, setIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -24,9 +43,8 @@ export default function StylePage() {
     const parts = [style.trim()];
     if (gender !== 'Any') parts.unshift(gender);
     if (category !== 'Clothes') parts.push(category);
-    if (category === 'Shoes' && shoeSize !== 'Any') parts.push(`shoe size ${shoeSize}`);
-    if (category !== 'Shoes' && size !== 'Any') parts.push(`size ${size}`);
-    parts.push('product with price buy');
+    if (size !== 'Any') parts.push(`size ${size}`);
+    parts.push('clothing apparel clothes only buy');
     return parts.filter(Boolean).join(' ');
   }
 
@@ -38,7 +56,7 @@ export default function StylePage() {
       body: JSON.stringify({ description: query, page: Math.floor(nextIndex / 20) + 1 })
     });
     const data = await res.json();
-    const next = data.results || [];
+    const next = (data.results || []).filter(isClothingProduct);
     setItems(current => [...current, ...next]);
   }
 
@@ -73,7 +91,7 @@ export default function StylePage() {
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [items, index, swipeCount, warned, gender, category, size, shoeSize, style]);
+  }, [items, index, swipeCount, warned, gender, category, size, style]);
 
   function onTouchEnd(e: React.TouchEvent) {
     if (touchStart === null) return;
@@ -88,13 +106,12 @@ export default function StylePage() {
     <div className="styleCenter">
       <h1>Style</h1>
       <div className="card searchBox styleSearch">
-        <input className="input" placeholder="Describe your style" value={style} onChange={e => setStyle(e.target.value)} />
+        <input className="input" placeholder="Describe clothes or outfit style" value={style} onChange={e => setStyle(e.target.value)} />
         <button type="button" className="button secondary" onClick={() => setFiltersOpen(v => !v)}>☰ Filters</button>
         {filtersOpen && <div className="filterPanel">
           <div className="filterRow">{genders.map(f => <button type="button" key={f} className={gender === f && f !== 'Any' ? 'filter active' : 'filter'} onClick={() => setGender(f)}>{f}</button>)}</div>
           <div className="filterRow">{categories.map(f => <button type="button" key={f} className={category === f && f !== 'Clothes' ? 'filter active' : 'filter'} onClick={() => setCategory(f)}>{f}</button>)}</div>
           <div className="filterRow">{clothingSizes.map(s => <button type="button" key={s} className={size === s && s !== 'Any' ? 'filter active' : 'filter'} onClick={() => setSize(s)}>{s}</button>)}</div>
-          <div className="filterRow">{shoeSizes.map(s => <button type="button" key={s} className={shoeSize === s && s !== 'Any' ? 'filter active' : 'filter'} onClick={() => setShoeSize(s)}>{s}</button>)}</div>
         </div>}
         <button className="button" onClick={generate} disabled={!style.trim()}>Generate</button>
       </div>
