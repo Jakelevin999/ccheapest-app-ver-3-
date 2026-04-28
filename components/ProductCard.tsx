@@ -1,36 +1,31 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { isFavorite, toggleFavorite } from '../lib/favorites';
-import { ShoppingResult } from '../lib/types';
+import { addToCart } from '../lib/cart';
 
-export type Product = ShoppingResult;
-
-function ratingClass(score?: number) {
-  if (!score) return 'ratingMid';
-  if (score <= 4) return 'ratingBad';
-  if (score <= 7) return 'ratingMid';
-  return 'ratingGood';
+function getColor(score?: number) {
+  if (!score) return '#aaa';
+  if (score <= 4) return '#ff3b30';
+  if (score <= 7) return '#ff9500';
+  return '#34c759';
 }
 
-export default function ProductCard({ product }: { product: Product }) {
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => setSaved(isFavorite(product.link)), [product.link]);
-
-  function onSave() {
-    setSaved(toggleFavorite(product).some(item => item.link === product.link));
+export default function ProductCard({ product }: any) {
+  function add() {
+    addToCart(product);
+    alert('Added to cart');
   }
 
   return <div className="card product">
-    <button className={`heart ${saved ? 'saved' : ''}`} onClick={onSave} aria-label="Save item">{saved ? '♥' : '♡'}</button>
     {product.image ? <img src={product.image} alt={product.title} /> : <div className="imagePlaceholder" />}
     <h3>{product.title}</h3>
-    <p className="price">{product.price || 'Check price'}</p>
-    <div className="ratings">
-      <span className={ratingClass(product.dealRating)}>Deal {product.dealRating || 5}/10</span>
-      <span className={ratingClass(product.cheapTrustRating)}>CheapTrust {product.cheapTrustRating || 6}/10</span>
+    <p className="price">{product.price}</p>
+    <div style={{display:'flex', flexDirection:'column', gap:6}}>
+      <span style={{color:getColor(product.dealRating)}}>Deal {product.dealRating || 5}/10</span>
+      <span style={{color:getColor(product.cheapTrustRating)}}>Trust {product.cheapTrustRating || 6}/10</span>
     </div>
-    <p className="muted">{product.source || 'Store'}</p>
-    <div className="row"><a className="button" href={product.link} target="_blank">Buy</a><button className="button secondary" onClick={onSave}>{saved ? 'Saved' : 'Save'}</button></div>
+    <div className="row">
+      <button className="button" onClick={add}>Add</button>
+      <a className="button secondary" href={product.link} target="_blank">View</a>
+    </div>
   </div>;
 }
