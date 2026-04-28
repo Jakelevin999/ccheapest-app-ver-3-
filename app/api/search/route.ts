@@ -7,7 +7,15 @@ function extractPrice(v=''){const m=String(v).replace(/,/g,'').match(/\$?([0-9]+
 function cheapTrust(source='',link=''){const t=(source+link).toLowerCase();if(/amazon|walmart|target|nike|apple|bestbuy/.test(t))return 9;if(/ebay|depop/.test(t))return 7;return 6;}
 
 function bestDirectLink(r:any){
-  return r.product_link || r.link || r.serpapi_product_api || r.serpapi_link || '';
+  let link = r.product_link || r.link || r.serpapi_product_api || r.serpapi_link || '';
+  if (link.includes('google.com')) {
+    try {
+      const parsed = new URL(link);
+      const real = parsed.searchParams.get('url') || parsed.searchParams.get('q');
+      if (real && !real.includes('google.com')) return real;
+    } catch {}
+  }
+  return link;
 }
 
 async function shoppingSearch(query:string,page=1){
