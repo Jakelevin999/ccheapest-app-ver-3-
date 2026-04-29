@@ -91,8 +91,8 @@ export default function Travel(){
   return <div style={{width:'100%',maxWidth:980,margin:'0 auto'}}>
     <h1 style={{fontSize:'clamp(42px,7vw,72px)',margin:'20px 0',letterSpacing:'-.06em'}}>Travel</h1>
     <div className='card' style={{maxWidth:720,margin:'0 auto',display:'grid',gap:14,padding:20,borderRadius:24}}>
-      <input className='input' placeholder='From (LAX)' value={from} onChange={e=>setFrom(e.target.value.toUpperCase())}/>
-      <input className='input' placeholder='To (JFK)' value={to} onChange={e=>setTo(e.target.value.toUpperCase())}/>
+      <input className='input' placeholder='City from' value={from} onChange={e=>setFrom(e.target.value)}/>
+      <input className='input' placeholder='City to' value={to} onChange={e=>setTo(e.target.value)}/>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
         <label style={{display:'grid',gap:6}}>
           <span className='muted' style={{fontSize:12,fontWeight:800}}>Departure date</span>
