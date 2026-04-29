@@ -34,7 +34,7 @@ async function identifyImage(imageData:string){
         role: 'user',
         content: [
           { type: 'input_text', text: 'Identify the main purchasable product in this image for shopping search. Return ONLY a short product search phrase with item type, color/material/brand if visible. Do not include sentences. Example: stainless steel water flask black lid' },
-          { type: 'input_image', image_url: imageData }
+          { type: 'input_image', image_url: imageData, detail: 'low' }
         ]
       }]
     });
