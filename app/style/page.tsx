@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { addToCart } from '../../lib/cart';
 
 const genders = ['Any', 'Men', 'Women', 'Unisex'];
@@ -18,6 +18,8 @@ export default function StylePage() {
   const [index, setIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchX, setTouchX] = useState(0);
+  const targetX = useRef(0);
+  const raf = useRef<number | null>(null);
   const [swipeCount, setSwipeCount] = useState(0);
   const [warned, setWarned] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -62,6 +64,14 @@ export default function StylePage() {
     setIndex(0);
     setAnimating(null);
     setTouchX(0);
+    targetX.current = 0;
+  }
+
+  function undoLast() {
+    if (index <= 0 || animating) return;
+    setIndex(index - 1);
+    setTouchX(0);
+    targetX.current = 0;
   }
 
   function finishAdvance(add: boolean) {
@@ -77,11 +87,13 @@ export default function StylePage() {
     const nextIndex = index + 1;
     setIndex(nextIndex);
     setTouchX(0);
+    targetX.current = 0;
     setAnimating(null);
     if (items.length - nextIndex < 5) loadMore(nextIndex);
   }
 
   function advance(add: boolean) {
+    if (animating) return;
     setAnimating(add ? 'right' : 'left');
     setTimeout(() => finishAdvance(add), 260);
   }
@@ -96,17 +108,29 @@ export default function StylePage() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [items, index, swipeCount, warned, gender, category, size, shoeSize, style, animating]);
 
+  function onTouchMove(e: React.TouchEvent) {
+    if (touchStart === null || animating) return;
+    e.preventDefault();
+    targetX.current = e.touches[0].clientX - touchStart;
+    if (raf.current) cancelAnimationFrame(raf.current);
+    raf.current = requestAnimationFrame(() => setTouchX(targetX.current));
+  }
+
   function onTouchEnd(e: React.TouchEvent) {
     if (touchStart === null || animating) return;
     const diff = e.changedTouches[0].clientX - touchStart;
     setTouchStart(null);
-    setTouchX(0);
-    if (Math.abs(diff) > 70) diff > 0 ? advance(true) : advance(false);
+    if (Math.abs(diff) > 70) {
+      diff > 0 ? advance(true) : advance(false);
+    } else {
+      targetX.current = 0;
+      setTouchX(0);
+    }
   }
 
   const item = items[index];
-  const dragTilt = Math.max(-15, Math.min(15, touchX / 10));
-  const dragMove = Math.max(-150, Math.min(150, touchX));
+  const dragTilt = Math.max(-18, Math.min(18, touchX / 12));
+  const dragMove = Math.max(-170, Math.min(170, touchX));
   const activeDir = animating || (touchX > 35 ? 'right' : touchX < -35 ? 'left' : null);
 
   return (
@@ -127,15 +151,11 @@ export default function StylePage() {
       </> : <>
         <button className="backButton" onClick={resetSearch}>← Back</button>
         {item ? <div className="swipeWrap swipeOnly">
-          <div className="swipeActions">
-            <button className={`swipeCircle no ${activeDir === 'left' ? 'active' : ''}`} onClick={() => advance(false)}>✕</button>
-            <button className={`swipeCircle yes ${activeDir === 'right' ? 'active' : ''}`} onClick={() => advance(true)}>✓</button>
-          </div>
           <div
             className={`card swipeCard animatedSwipeCard ${animating === 'left' ? 'swipeOutLeft' : animating === 'right' ? 'swipeOutRight' : ''}`}
-            style={!animating ? { transform: `translateX(${dragMove}px) rotate(${dragTilt}deg)` } : undefined}
+            style={!animating ? { transform: `translate3d(${dragMove}px,0,0) rotate(${dragTilt}deg)` } : undefined}
             onTouchStart={e => setTouchStart(e.touches[0].clientX)}
-            onTouchMove={e => { e.preventDefault(); if (touchStart !== null) setTouchX(e.touches[0].clientX - touchStart); }}
+            onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
           >
             {item.image ? <img src={item.image} alt={item.title} /> : <div className="imagePlaceholder" />}
@@ -143,6 +163,11 @@ export default function StylePage() {
             <p className="price">{item.price || 'Check price'}</p>
             {item.selectedSize ? <p className="muted">Size: {item.selectedSize}</p> : null}
             <p className="muted">{item.source}</p>
+          </div>
+          <div className="swipeActions">
+            <button className="undoCircle" onClick={undoLast}>↩</button>
+            <button className={`swipeCircle no ${activeDir === 'left' ? 'active' : ''}`} onClick={() => advance(false)}>✕</button>
+            <button className={`swipeCircle yes ${activeDir === 'right' ? 'active' : ''}`} onClick={() => advance(true)}>✓</button>
           </div>
         </div> : <div className="card empty"><h2>Loading more...</h2></div>}
       </>}
