@@ -84,8 +84,14 @@ export default function Travel(){
       <input className='input' placeholder='From (LAX)' value={from} onChange={e=>setFrom(e.target.value.toUpperCase())}/>
       <input className='input' placeholder='To (JFK)' value={to} onChange={e=>setTo(e.target.value.toUpperCase())}/>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-        <input className='input' type='date' value={depart} onChange={e=>setDepart(e.target.value)}/>
-        <input className='input' type='date' value={ret} onChange={e=>setRet(e.target.value)}/>
+        <label style={{display:'grid',gap:6}}>
+          <span className='muted' style={{fontSize:12,fontWeight:800}}>Departure date</span>
+          <input className='input' type='date' value={depart} onChange={e=>setDepart(e.target.value)}/>
+        </label>
+        <label style={{display:'grid',gap:6}}>
+          <span className='muted' style={{fontSize:12,fontWeight:800}}>Return date</span>
+          <input className='input' type='date' value={ret} onChange={e=>setRet(e.target.value)}/>
+        </label>
       </div>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
         <select className='input' value={gender} onChange={e=>setGender(e.target.value)}><option>Men</option><option>Women</option><option>Unisex</option></select>
