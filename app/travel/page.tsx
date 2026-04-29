@@ -89,7 +89,9 @@ export default function Travel(){
   </section>}
 
   return <div style={{width:'100%',maxWidth:980,margin:'0 auto'}}>
-    <h1 style={{fontSize:'clamp(42px,7vw,72px)',margin:'20px 0',letterSpacing:'-.06em'}}>Travel</h1>
+    <div style={{maxWidth:720,margin:'0 auto'}}>
+      <h1 style={{fontSize:'clamp(42px,7vw,72px)',margin:'20px 0 36px',letterSpacing:'-.06em'}}>Travel</h1>
+    </div>
     <div className='card' style={{maxWidth:720,margin:'0 auto',display:'grid',gap:14,padding:20,borderRadius:24}}>
       <input className='input' placeholder='City from' value={from} onChange={e=>setFrom(e.target.value)}/>
       <input className='input' placeholder='City to' value={to} onChange={e=>setTo(e.target.value)}/>
