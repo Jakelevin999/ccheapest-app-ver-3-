@@ -17,8 +17,11 @@ export default function StylePage() {
   const [items, setItems] = useState<any[]>([]);
   const [index, setIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchX, setTouchX] = useState(0);
   const [swipeCount, setSwipeCount] = useState(0);
   const [warned, setWarned] = useState(false);
+  const [searched, setSearched] = useState(false);
+  const [animating, setAnimating] = useState<'left' | 'right' | null>(null);
 
   const selectedSize = category === 'Shoes' ? shoeSize : size;
 
@@ -45,6 +48,7 @@ export default function StylePage() {
   }
 
   async function generate() {
+    setSearched(true);
     setWarned(false);
     setSwipeCount(0);
     setItems([]);
@@ -52,7 +56,15 @@ export default function StylePage() {
     await loadMore(0);
   }
 
-  function advance(add: boolean) {
+  function resetSearch() {
+    setSearched(false);
+    setItems([]);
+    setIndex(0);
+    setAnimating(null);
+    setTouchX(0);
+  }
+
+  function finishAdvance(add: boolean) {
     const item = items[index];
     if (!item) return;
     if (add) addToCart(item);
@@ -64,53 +76,76 @@ export default function StylePage() {
     }
     const nextIndex = index + 1;
     setIndex(nextIndex);
+    setTouchX(0);
+    setAnimating(null);
     if (items.length - nextIndex < 5) loadMore(nextIndex);
+  }
+
+  function advance(add: boolean) {
+    setAnimating(add ? 'right' : 'left');
+    setTimeout(() => finishAdvance(add), 260);
   }
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (!items[index]) return;
+      if (!items[index] || animating) return;
       if (e.key === 'ArrowLeft') advance(false);
       if (e.key === 'ArrowRight') advance(true);
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [items, index, swipeCount, warned, gender, category, size, shoeSize, style]);
+  }, [items, index, swipeCount, warned, gender, category, size, shoeSize, style, animating]);
 
   function onTouchEnd(e: React.TouchEvent) {
-    if (touchStart === null) return;
+    if (touchStart === null || animating) return;
     const diff = e.changedTouches[0].clientX - touchStart;
-    if (Math.abs(diff) > 70) diff > 0 ? advance(true) : advance(false);
     setTouchStart(null);
+    setTouchX(0);
+    if (Math.abs(diff) > 70) diff > 0 ? advance(true) : advance(false);
   }
 
   const item = items[index];
+  const dragTilt = Math.max(-15, Math.min(15, touchX / 10));
+  const dragMove = Math.max(-150, Math.min(150, touchX));
+  const activeDir = animating || (touchX > 35 ? 'right' : touchX < -35 ? 'left' : null);
 
   return (
-    <div className="styleCenter">
-      <h1>Style</h1>
-      <div className="card searchBox styleSearch">
-        <input className="input" placeholder="Describe your style" value={style} onChange={e => setStyle(e.target.value)} />
-        <button type="button" className="button secondary" onClick={() => setFiltersOpen(v => !v)}>☰ Filters</button>
-        {filtersOpen && <div className="filterPanel">
-          <div className="filterRow">{genders.map(f => <button type="button" key={f} className={gender === f && f !== 'Any' ? 'filter active' : 'filter'} onClick={() => setGender(f)}>{f}</button>)}</div>
-          <div className="filterRow">{categories.map(f => <button type="button" key={f} className={category === f && f !== 'Clothes' ? 'filter active' : 'filter'} onClick={() => setCategory(f)}>{f}</button>)}</div>
-          <div className="filterRow">{clothingSizes.map(s => <button type="button" key={s} className={size === s && s !== 'Any' ? 'filter active' : 'filter'} onClick={() => setSize(s)}>{s}</button>)}</div>
-          <div className="filterRow">{shoeSizes.map(s => <button type="button" key={s} className={shoeSize === s && s !== 'Any' ? 'filter active' : 'filter'} onClick={() => setShoeSize(s)}>{s}</button>)}</div>
-        </div>}
-        <button className="button" onClick={generate} disabled={!style.trim()}>Generate</button>
-      </div>
-
-      {item ? <div className="swipeWrap">
-        <div className="card swipeCard" onTouchStart={e => setTouchStart(e.touches[0].clientX)} onTouchMove={e => e.preventDefault()} onTouchEnd={onTouchEnd}>
-          {item.image ? <img src={item.image} alt={item.title} /> : <div className="imagePlaceholder" />}
-          <h3>{item.title}</h3>
-          <p className="price">{item.price || 'Check price'}</p>
-          {item.selectedSize ? <p className="muted">Size: {item.selectedSize}</p> : null}
-          <p className="muted">{item.source}</p>
-          <div className="row"><button className="button secondary" onClick={() => advance(false)}>Skip</button><button className="button" onClick={() => advance(true)}>Add to Cart</button></div>
+    <div className="styleCenter compactSwipePage">
+      {!searched ? <>
+        <h1>Style</h1>
+        <div className="card searchBox styleSearch">
+          <input className="input" placeholder="Describe your style" value={style} onChange={e => setStyle(e.target.value)} />
+          <button type="button" className="button secondary" onClick={() => setFiltersOpen(v => !v)}>☰ Filters</button>
+          {filtersOpen && <div className="filterPanel">
+            <div className="filterRow">{genders.map(f => <button type="button" key={f} className={gender === f && f !== 'Any' ? 'filter active' : 'filter'} onClick={() => setGender(f)}>{f}</button>)}</div>
+            <div className="filterRow">{categories.map(f => <button type="button" key={f} className={category === f && f !== 'Clothes' ? 'filter active' : 'filter'} onClick={() => setCategory(f)}>{f}</button>)}</div>
+            <div className="filterRow">{clothingSizes.map(s => <button type="button" key={s} className={size === s && s !== 'Any' ? 'filter active' : 'filter'} onClick={() => setSize(s)}>{s}</button>)}</div>
+            <div className="filterRow">{shoeSizes.map(s => <button type="button" key={s} className={shoeSize === s && s !== 'Any' ? 'filter active' : 'filter'} onClick={() => setShoeSize(s)}>{s}</button>)}</div>
+          </div>}
+          <button className="button" onClick={generate} disabled={!style.trim()}>Generate</button>
         </div>
-      </div> : items.length > 0 ? <div className="card empty"><h2>Loading more...</h2></div> : null}
+      </> : <>
+        <button className="backButton" onClick={resetSearch}>← Back</button>
+        {item ? <div className="swipeWrap swipeOnly">
+          <div className="swipeActions">
+            <button className={`swipeCircle no ${activeDir === 'left' ? 'active' : ''}`} onClick={() => advance(false)}>✕</button>
+            <button className={`swipeCircle yes ${activeDir === 'right' ? 'active' : ''}`} onClick={() => advance(true)}>✓</button>
+          </div>
+          <div
+            className={`card swipeCard animatedSwipeCard ${animating === 'left' ? 'swipeOutLeft' : animating === 'right' ? 'swipeOutRight' : ''}`}
+            style={!animating ? { transform: `translateX(${dragMove}px) rotate(${dragTilt}deg)` } : undefined}
+            onTouchStart={e => setTouchStart(e.touches[0].clientX)}
+            onTouchMove={e => { e.preventDefault(); if (touchStart !== null) setTouchX(e.touches[0].clientX - touchStart); }}
+            onTouchEnd={onTouchEnd}
+          >
+            {item.image ? <img src={item.image} alt={item.title} /> : <div className="imagePlaceholder" />}
+            <h3>{item.title}</h3>
+            <p className="price">{item.price || 'Check price'}</p>
+            {item.selectedSize ? <p className="muted">Size: {item.selectedSize}</p> : null}
+            <p className="muted">{item.source}</p>
+          </div>
+        </div> : <div className="card empty"><h2>Loading more...</h2></div>}
+      </>}
     </div>
   );
 }
