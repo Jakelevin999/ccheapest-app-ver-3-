@@ -24,6 +24,7 @@ export default function StylePage() {
   const [warned, setWarned] = useState(false);
   const [searched, setSearched] = useState(false);
   const [animating, setAnimating] = useState<'left' | 'right' | null>(null);
+  const [canUndo, setCanUndo] = useState(false);
 
   const selectedSize = category === 'Shoes' ? shoeSize : size;
 
@@ -53,6 +54,7 @@ export default function StylePage() {
     setSearched(true);
     setWarned(false);
     setSwipeCount(0);
+    setCanUndo(false);
     setItems([]);
     setIndex(0);
     await loadMore(0);
@@ -65,13 +67,15 @@ export default function StylePage() {
     setAnimating(null);
     setTouchX(0);
     targetX.current = 0;
+    setCanUndo(false);
   }
 
   function undoLast() {
-    if (index <= 0 || animating) return;
+    if (!canUndo || index <= 0 || animating) return;
     setIndex(index - 1);
     setTouchX(0);
     targetX.current = 0;
+    setCanUndo(false);
   }
 
   function finishAdvance(add: boolean) {
@@ -86,6 +90,7 @@ export default function StylePage() {
     }
     const nextIndex = index + 1;
     setIndex(nextIndex);
+    setCanUndo(true);
     setTouchX(0);
     targetX.current = 0;
     setAnimating(null);
@@ -149,7 +154,7 @@ export default function StylePage() {
           <button className="button" onClick={generate} disabled={!style.trim()}>Generate</button>
         </div>
       </> : <>
-        <button className="backButton" onClick={resetSearch}>← Back</button>
+        <button className="backButton" onClick={resetSearch} aria-label="Back to style search"><span>← Back</span></button>
         {item ? <div className="swipeWrap swipeOnly">
           <div
             className={`card swipeCard animatedSwipeCard ${animating === 'left' ? 'swipeOutLeft' : animating === 'right' ? 'swipeOutRight' : ''}`}
@@ -165,7 +170,7 @@ export default function StylePage() {
             <p className="muted">{item.source}</p>
           </div>
           <div className="swipeActions">
-            <button className="undoCircle" onClick={undoLast}>↩</button>
+            {canUndo ? <button className="undoCircle" onClick={undoLast} aria-label="Go back one product">↩</button> : <div className="undoSpacer" />}
             <button className={`swipeCircle no ${activeDir === 'left' ? 'active' : ''}`} onClick={() => advance(false)}>✕</button>
             <button className={`swipeCircle yes ${activeDir === 'right' ? 'active' : ''}`} onClick={() => advance(true)}>✓</button>
           </div>
