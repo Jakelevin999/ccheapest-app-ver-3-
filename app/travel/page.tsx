@@ -11,6 +11,19 @@ function nextDay(date:string){
   d.setDate(d.getDate() + 1);
   return d.toISOString().slice(0,10);
 }
+function prettyDate(date:string){
+  if(!date) return 'mm/dd/yyyy';
+  const [y,m,d]=date.split('-');
+  return `${m}/${d}/${y}`;
+}
+
+function DatePill({label,value,onChange}:{label:string;value:string;onChange:(v:string)=>void}){
+  return <label className='datePillWrap'>
+    <span className='muted dateLabel'>{label}</span>
+    <span className={`datePill ${value ? 'hasValue' : ''}`}>{prettyDate(value)} <span className='dateIcon'>▦</span></span>
+    <input className='dateNative' type='date' value={value} onChange={e=>onChange(e.target.value)} />
+  </label>
+}
 
 export default function Travel(){
   const [from,setFrom]=useState('');
@@ -94,15 +107,9 @@ export default function Travel(){
       <div className='card' style={{display:'grid',gap:14,padding:20,borderRadius:24}}>
         <input className='input' placeholder='City from' value={from} onChange={e=>setFrom(e.target.value)}/>
         <input className='input' placeholder='City to' value={to} onChange={e=>setTo(e.target.value)}/>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-          <label style={{display:'grid',gap:6}}>
-            <span className='muted' style={{fontSize:12,fontWeight:800}}>Departure date</span>
-            <input className='input' type='date' value={depart} onChange={e=>handleDepartChange(e.target.value)}/>
-          </label>
-          <label style={{display:'grid',gap:6}}>
-            <span className='muted' style={{fontSize:12,fontWeight:800}}>Return date</span>
-            <input className='input' type='date' value={ret} onChange={e=>setRet(e.target.value)}/>
-          </label>
+        <div className='dateGrid'>
+          <DatePill label='Departure date' value={depart} onChange={handleDepartChange}/>
+          <DatePill label='Return date' value={ret} onChange={setRet}/>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
           <select className='input' value={gender} onChange={e=>setGender(e.target.value)}><option>Men</option><option>Women</option><option>Unisex</option></select>
