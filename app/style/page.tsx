@@ -138,6 +138,22 @@ export default function StylePage() {
   const dragMove = Math.max(-170, Math.min(170, touchX));
   const activeDir = animating || (touchX > 35 ? 'right' : touchX < -35 ? 'left' : null);
 
+  const undoStyle: React.CSSProperties = {
+    width: 68,
+    height: 68,
+    borderRadius: 999,
+    border: 0,
+    background: '#a7a7a7',
+    color: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 16px 36px rgba(0,0,0,.18)',
+    pointerEvents: 'auto',
+    cursor: 'pointer',
+    padding: 0
+  };
+
   return (
     <div className="styleCenter compactSwipePage">
       {!searched ? <>
@@ -170,7 +186,12 @@ export default function StylePage() {
             <p className="muted">{item.source}</p>
           </div>
           <div className="swipeActions">
-            {canUndo ? <button className="undoCircle" onClick={undoLast} aria-label="Go back one product">↩</button> : <div className="undoSpacer" />}
+            {canUndo ? <button style={undoStyle} onClick={undoLast} aria-label="Go back one product">
+              <svg width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                <path d="M19 14L9 24L19 34" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M11 24H29C36 24 40 28 40 34" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button> : <div className="undoSpacer" />}
             <button className={`swipeCircle no ${activeDir === 'left' ? 'active' : ''}`} onClick={() => advance(false)}>✕</button>
             <button className={`swipeCircle yes ${activeDir === 'right' ? 'active' : ''}`} onClick={() => advance(true)}>✓</button>
           </div>
