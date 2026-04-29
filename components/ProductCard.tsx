@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { addToCart } from '../lib/cart';
 
 function getColor(score?: number) {
@@ -9,7 +10,13 @@ function getColor(score?: number) {
 }
 
 export default function ProductCard({ product }: any) {
-  function add() { addToCart(product); }
+  const [added, setAdded] = useState(false);
+
+  function add() {
+    addToCart(product);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1200);
+  }
 
   return <div className="card product" style={{display:'flex', flexDirection:'column', justifyContent:'space-between', height:'100%'}}>
     <div>
@@ -24,8 +31,8 @@ export default function ProductCard({ product }: any) {
     </div>
 
     <div style={{display:'flex', gap:8, marginTop:12}}>
-      <button className="button" style={{flex:1}} onClick={add}>Add to Cart</button>
-      <a className="button secondary" style={{flex:1}} href={product.link} target="_blank">View</a>
+      <button className={`button addCartButton ${added ? 'added' : ''}`} style={{flex:1}} onClick={add}>{added ? 'Added ✓' : 'Add to Cart'}</button>
+      <a className="button secondary" style={{flex:1}} href={product.link} target="_blank" rel="noreferrer">View</a>
     </div>
   </div>;
 }
