@@ -6,6 +6,11 @@ type Flight = { name:string; logo:string; initials?:string; price:string; link:s
 
 function shopSearch(q:string){return `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(q)}`;}
 function priceNum(p=''){const n=Number(String(p).replace(/[^0-9.]/g,''));return Number.isFinite(n)?n:999999;}
+function nextDay(date:string){
+  const d = new Date(date + 'T00:00:00');
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0,10);
+}
 
 export default function Travel(){
   const [from,setFrom]=useState('');
@@ -19,6 +24,11 @@ export default function Travel(){
   const [flights,setFlights]=useState<Flight[]>([]);
   const [outfits,setOutfits]=useState<Product[]>([]);
   const [accessories,setAccessories]=useState<Product[]>([]);
+
+  function handleDepartChange(value:string){
+    setDepart(value);
+    if(value) setRet(nextDay(value));
+  }
 
   async function fetchProducts(query:string, mode?:string){
     const res=await fetch('/api/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({description:query,mode})});
@@ -86,7 +96,7 @@ export default function Travel(){
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
         <label style={{display:'grid',gap:6}}>
           <span className='muted' style={{fontSize:12,fontWeight:800}}>Departure date</span>
-          <input className='input' type='date' value={depart} onChange={e=>setDepart(e.target.value)}/>
+          <input className='input' type='date' value={depart} onChange={e=>handleDepartChange(e.target.value)}/>
         </label>
         <label style={{display:'grid',gap:6}}>
           <span className='muted' style={{fontSize:12,fontWeight:800}}>Return date</span>
