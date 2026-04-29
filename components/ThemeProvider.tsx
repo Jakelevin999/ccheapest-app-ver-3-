@@ -2,13 +2,13 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
-const ThemeContext = createContext<{ theme: Theme; setTheme: (theme: Theme) => void }>({ theme: 'system', setTheme: () => {} });
+const ThemeContext = createContext<{ theme: Theme; setTheme: (theme: Theme) => void }>({ theme: 'light', setTheme: () => {} });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('system');
+  const [theme, setThemeState] = useState<Theme>('light');
 
   useEffect(() => {
-    const saved = (localStorage.getItem('cheaperfind:theme') as Theme | null) || 'system';
+    const saved = (localStorage.getItem('cheaperfind:theme') as Theme | null) || 'light';
     setThemeState(saved);
   }, []);
 
