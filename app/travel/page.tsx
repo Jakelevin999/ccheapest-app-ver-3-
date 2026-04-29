@@ -91,25 +91,25 @@ export default function Travel(){
   return <div style={{width:'100%',maxWidth:980,margin:'0 auto'}}>
     <div style={{maxWidth:720,margin:'0 auto'}}>
       <h1 style={{fontSize:'clamp(42px,7vw,72px)',margin:'20px 0 36px',letterSpacing:'-.06em'}}>Travel</h1>
-    </div>
-    <div className='card' style={{maxWidth:720,margin:'0 auto',display:'grid',gap:14,padding:20,borderRadius:24}}>
-      <input className='input' placeholder='City from' value={from} onChange={e=>setFrom(e.target.value)}/>
-      <input className='input' placeholder='City to' value={to} onChange={e=>setTo(e.target.value)}/>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-        <label style={{display:'grid',gap:6}}>
-          <span className='muted' style={{fontSize:12,fontWeight:800}}>Departure date</span>
-          <input className='input' type='date' value={depart} onChange={e=>handleDepartChange(e.target.value)}/>
-        </label>
-        <label style={{display:'grid',gap:6}}>
-          <span className='muted' style={{fontSize:12,fontWeight:800}}>Return date</span>
-          <input className='input' type='date' value={ret} onChange={e=>setRet(e.target.value)}/>
-        </label>
+      <div className='card' style={{display:'grid',gap:14,padding:20,borderRadius:24}}>
+        <input className='input' placeholder='City from' value={from} onChange={e=>setFrom(e.target.value)}/>
+        <input className='input' placeholder='City to' value={to} onChange={e=>setTo(e.target.value)}/>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+          <label style={{display:'grid',gap:6}}>
+            <span className='muted' style={{fontSize:12,fontWeight:800}}>Departure date</span>
+            <input className='input' type='date' value={depart} onChange={e=>handleDepartChange(e.target.value)}/>
+          </label>
+          <label style={{display:'grid',gap:6}}>
+            <span className='muted' style={{fontSize:12,fontWeight:800}}>Return date</span>
+            <input className='input' type='date' value={ret} onChange={e=>setRet(e.target.value)}/>
+          </label>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+          <select className='input' value={gender} onChange={e=>setGender(e.target.value)}><option>Men</option><option>Women</option><option>Unisex</option></select>
+          <input className='input' type='number' min='1' placeholder='Guests' value={guests} onChange={e=>setGuests(e.target.value)}/>
+        </div>
+        <button className='button' onClick={searchTrip} disabled={!from.trim()||!to.trim()||!depart||loading}>{loading?'Loading...':'Search'}</button>
       </div>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-        <select className='input' value={gender} onChange={e=>setGender(e.target.value)}><option>Men</option><option>Women</option><option>Unisex</option></select>
-        <input className='input' type='number' min='1' placeholder='Guests' value={guests} onChange={e=>setGuests(e.target.value)}/>
-      </div>
-      <button className='button' onClick={searchTrip} disabled={!from.trim()||!to.trim()||!depart||loading}>{loading?'Loading...':'Search'}</button>
     </div>
     {searched && (loading? <div className='card empty' style={{marginTop:26}}><h2>Loading travel picks...</h2></div>:<>
       <RowFlights/>
