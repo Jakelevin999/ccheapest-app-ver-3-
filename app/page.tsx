@@ -1,8 +1,10 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 const specialOptions = ['BPA Free','Greenguard Certified','Vegan','Cruelty Free','Non Toxic','Organic','FSC Certified'];
+const priceTiers = ['Saver','Standard','Baller'];
+const priceTierKey = 'cheaperfind:priceTier';
 
 function compressImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -34,9 +36,14 @@ export default function Home() {
   const [imageData, setImageData] = useState<string>('');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [specialFilters, setSpecialFilters] = useState<string[]>([]);
-  const [maxPrice, setMaxPrice] = useState(500);
+  const [priceTier, setPriceTier] = useState('Standard');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const saved = localStorage.getItem(priceTierKey);
+    if (saved && priceTiers.includes(saved)) setPriceTier(saved);
+  }, []);
 
   function toggleSpecial(name:string){
     setSpecialFilters(current => current.includes(name) ? current.filter(x => x !== name) : [...current, name]);
@@ -54,7 +61,7 @@ export default function Home() {
       const res = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: description.trim(), url: url.trim(), imageData, specialFilters, maxPrice })
+        body: JSON.stringify({ description: description.trim(), url: url.trim(), imageData, specialFilters, priceTier })
       });
       const data = await res.json();
       localStorage.setItem('cheaperfind:lastResults', JSON.stringify(data));
@@ -71,9 +78,8 @@ export default function Home() {
       {filtersOpen && <div className="filterPanel">
         <details className="filterDrop" open>
           <summary>Price</summary>
-          <div className="sliderBlock">
-            <div className="sliderTop"><span>Max price</span><strong>${maxPrice}</strong></div>
-            <input className="priceSlider" type="range" min="10" max="1000" step="10" value={maxPrice} onChange={e => setMaxPrice(Number(e.target.value))} />
+          <div className="tierOptions">
+            {priceTiers.map(t => <button key={t} type="button" className={priceTier === t ? 'tierButton active' : 'tierButton'} onClick={() => setPriceTier(t)}>{t}</button>)}
           </div>
         </details>
         <details className="filterDrop">
