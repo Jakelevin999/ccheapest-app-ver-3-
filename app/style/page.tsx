@@ -94,13 +94,13 @@ export default function StylePage() {
         <input className="input" placeholder="Describe your style" value={style} onChange={e => setStyle(e.target.value)} />
         <button type="button" className="button secondary" onClick={() => setFiltersOpen(v => !v)}>☰ Filters</button>
         {filtersOpen && <div className="filterPanel premiumFilters">
-          <div className="premiumRow"><label>Gender</label><select className="input" value={gender} onChange={e=>handleGender(e.target.value)}>{genders.map(g=><option key={g}>{g}</option>)}</select></div>
-          <div className="premiumRow"><label>Category</label><select className="input" value={category} onChange={e=>setCategory(e.target.value)}>{categories.map(c=><option key={c}>{c}</option>)}</select></div>
-          <div className="premiumRow"><label>Top size</label><select className="input" value={topSize} onChange={e=>setTopSize(e.target.value)}>{topSizes.map(s=><option key={s}>{s}</option>)}</select></div>
-          <div className="premiumRow"><label>Bottom size</label><select className="input" value={bottomSize} onChange={e=>setBottomSize(e.target.value)}>{bottomSizes.map(s=><option key={s}>{s}</option>)}</select></div>
-          <div className="premiumRow"><label>Shoe size</label><select className="input" value={shoeSize} onChange={e=>setShoeSize(e.target.value)}>{shoeSizes.map(s=><option key={s}>{s}</option>)}</select></div>
-          <div className="premiumRow"><label>Max price</label><div className="sliderTop"><strong>${maxPrice}</strong></div><input className="priceSlider" type="range" min="10" max="1000" step="10" value={maxPrice} onChange={e=>setMaxPrice(Number(e.target.value))} /></div>
-          <div className="premiumRow"><label>Special filters</label><div className="filterRow">{specialOptions.map(name => <button type="button" key={name} className={specialFilters.includes(name) ? 'filter active greenFilter' : 'filter'} onClick={()=>toggleSpecial(name)}>{name}</button>)}</div></div>
+          <details className="filterDrop"><summary>Gender · {gender}</summary><select className="input" value={gender} onChange={e=>handleGender(e.target.value)}>{genders.map(g=><option key={g}>{g}</option>)}</select></details>
+          <details className="filterDrop"><summary>Category · {category}</summary><select className="input" value={category} onChange={e=>setCategory(e.target.value)}>{categories.map(c=><option key={c}>{c}</option>)}</select></details>
+          <details className="filterDrop"><summary>Top size · {topSize}</summary><select className="input" value={topSize} onChange={e=>setTopSize(e.target.value)}>{topSizes.map(s=><option key={s}>{s}</option>)}</select></details>
+          <details className="filterDrop"><summary>Bottom size · {bottomSize}</summary><select className="input" value={bottomSize} onChange={e=>setBottomSize(e.target.value)}>{bottomSizes.map(s=><option key={s}>{s}</option>)}</select></details>
+          <details className="filterDrop"><summary>Shoe size · {shoeSize}</summary><select className="input" value={shoeSize} onChange={e=>setShoeSize(e.target.value)}>{shoeSizes.map(s=><option key={s}>{s}</option>)}</select></details>
+          <details className="filterDrop"><summary>Price · Under ${maxPrice}</summary><div className="sliderBlock"><div className="sliderTop"><strong>${maxPrice}</strong></div><input className="priceSlider" type="range" min="10" max="1000" step="10" value={maxPrice} onChange={e=>setMaxPrice(Number(e.target.value))} /></div></details>
+          <details className="filterDrop"><summary>Special filters · {specialFilters.length ? specialFilters.length + ' selected' : 'None'}</summary><div className="filterRow">{specialOptions.map(name => <button type="button" key={name} className={specialFilters.includes(name) ? 'filter active greenFilter' : 'filter'} onClick={()=>toggleSpecial(name)}>{name}</button>)}</div></details>
         </div>}
         <button className="button" onClick={generate} disabled={!style.trim() || loading}>{loading ? 'Generating...' : 'Generate'}</button>
       </div>
