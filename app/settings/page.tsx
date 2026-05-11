@@ -39,26 +39,28 @@ export default function SettingsPage() {
   return <section className="settingsPage cleanSettings">
     <h1>Settings</h1>
 
-    <div className="card settingsCard cleanSettingsCard">
-      <div className="settingsHeaderRow"><div><h2>Profile</h2><p className="muted">Add or change your profile picture.</p></div>
-      <label className="profileUploadBox cleanProfileUpload"><input type="file" accept="image/*" onChange={handleUpload} />{preview ? <img src={preview} alt="Profile" /> : <span>👤</span>}</label></div>
+    <div className="card settingsCard cleanSettingsCard compactSettingsCard">
+      <div className="settingsHeaderRow">
+        <div><h2>Profile</h2><p className="muted">Add or change your profile picture.</p></div>
+        <label className="profileUploadBox cleanProfileUpload"><input type="file" accept="image/*" onChange={handleUpload} />{preview ? <img src={preview} alt="Profile" /> : <span>👤</span>}</label>
+      </div>
     </div>
 
-    <div className="card settingsCard cleanSettingsCard">
+    <div className="card settingsCard cleanSettingsCard compactSettingsCard">
       <h2>Appearance</h2>
-      <div className="segmented cleanSegmented">{(['light','dark','system'] as const).map(option => <button key={option} className={theme === option ? 'selected' : ''} onClick={() => setTheme(option)}>{option}</button>)}</div>
+      <div className="tierOptions compactTierOptions">{(['light','dark','system'] as const).map(option => <button type="button" key={option} className={theme === option ? 'tierButton active' : 'tierButton'} onClick={() => setTheme(option)}>{option}</button>)}</div>
     </div>
 
-    <div className="card settingsCard cleanSettingsCard">
-      <h2>Default Spender</h2>
-      <p className="muted">Applies automatically to Shop and Style searches.</p>
-      <div className="tierOptions settingsTierOptions">{priceTiers.map(t => <button type="button" key={t} className={priceTier === t ? 'tierButton active' : 'tierButton'} onClick={() => setDefaultTier(t)}><strong>{t}</strong></button>)}</div>
+    <div className="card settingsCard cleanSettingsCard compactSettingsCard">
+      <h2>Default Spending</h2>
+      <p className="muted">Applies automatically to Shop and Style.</p>
+      <div className="tierOptions compactTierOptions">{priceTiers.map(t => <button type="button" key={t} className={priceTier === t ? 'tierButton active' : 'tierButton'} onClick={() => setDefaultTier(t)}>{t}</button>)}</div>
     </div>
 
-    <div className="card settingsCard cleanSettingsCard">
+    <div className="card settingsCard cleanSettingsCard compactSettingsCard">
       <h2>Search Preferences</h2>
       <label className="settingRow cleanSettingRow"><span>Show similar dupes</span><input type="checkbox" checked={showDupes} onChange={e=>setShowDupes(e.target.checked)} /></label>
-      <label className="settingRow cleanSettingRow"><span>Include used/resale marketplaces</span><input type="checkbox" checked={resale} onChange={e=>setResale(e.target.checked)} /></label>
+      <label className="settingRow cleanSettingRow"><span>Include resale marketplaces</span><input type="checkbox" checked={resale} onChange={e=>setResale(e.target.checked)} /></label>
     </div>
   </section>;
 }
