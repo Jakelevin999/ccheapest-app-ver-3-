@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+const specialOptions = ['BPA Free','Greenguard Certified','Vegan','Cruelty Free','Non Toxic','Organic','FSC Certified'];
+
 function compressImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -30,10 +32,15 @@ export default function Home() {
   const [description, setDescription] = useState('');
   const [url, setUrl] = useState('');
   const [imageData, setImageData] = useState<string>('');
-  const [greenCertified, setGreenCertified] = useState(false);
-  const [cheapFinds, setCheapFinds] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [specialFilters, setSpecialFilters] = useState<string[]>([]);
+  const [maxPrice, setMaxPrice] = useState(500);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  function toggleSpecial(name:string){
+    setSpecialFilters(current => current.includes(name) ? current.filter(x => x !== name) : [...current, name]);
+  }
 
   async function onFile(file?: File) {
     if (!file) return;
@@ -47,7 +54,7 @@ export default function Home() {
       const res = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: description.trim(), url: url.trim(), imageData, greenCertified, cheapFinds })
+        body: JSON.stringify({ description: description.trim(), url: url.trim(), imageData, specialFilters, maxPrice })
       });
       const data = await res.json();
       localStorage.setItem('cheaperfind:lastResults', JSON.stringify(data));
@@ -60,10 +67,22 @@ export default function Home() {
     <div className="card searchBox shopCard">
       <input className="input" placeholder="Describe product" value={description} onChange={e => setDescription(e.target.value)} />
       <input className="input" placeholder="Paste product link" value={url} onChange={e => setUrl(e.target.value)} />
-      <div className="filterRow">
-        <button type="button" className={greenCertified ? 'filter active greenFilter' : 'filter'} onClick={() => setGreenCertified(v => !v)}>Green Certified</button>
-        <button type="button" className={cheapFinds ? 'filter active cheapFilter' : 'filter'} onClick={() => setCheapFinds(v => !v)}>Cheap Finds</button>
-      </div>
+      <button type="button" className="button secondary" onClick={() => setFiltersOpen(v => !v)}>☰ Filters</button>
+      {filtersOpen && <div className="filterPanel">
+        <details className="filterDrop" open>
+          <summary>Price</summary>
+          <div className="sliderBlock">
+            <div className="sliderTop"><span>Max price</span><strong>${maxPrice}</strong></div>
+            <input className="priceSlider" type="range" min="10" max="1000" step="10" value={maxPrice} onChange={e => setMaxPrice(Number(e.target.value))} />
+          </div>
+        </details>
+        <details className="filterDrop">
+          <summary>Special filters</summary>
+          <div className="filterRow">
+            {specialOptions.map(name => <button type="button" key={name} className={specialFilters.includes(name) ? 'filter active greenFilter' : 'filter'} onClick={() => toggleSpecial(name)}>{name}</button>)}
+          </div>
+        </details>
+      </div>}
       <label className="uploadBox"><input type="file" accept="image/*" onChange={e => onFile(e.target.files?.[0])} /><span>{imageData ? 'Photo ready' : 'Upload photo'}</span></label>
       {imageData && <img src={imageData} alt="preview" className="preview" />}
       <button className="button" onClick={search} disabled={loading || (!description && !url && !imageData)}>{loading ? 'Searching...' : 'Search'}</button>
