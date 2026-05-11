@@ -2,26 +2,35 @@
 import { useEffect, useRef, useState } from 'react';
 import { addToCart } from '../../lib/cart';
 
-const genders = ['Men', 'Women', 'Unisex'];
+const genders = ['Mens', 'Womens', 'Unisex'];
 const categories = ['Clothes', 'Shoes', 'Bags', 'Accessories', 'Outfits'];
 const specialOptions = ['BPA Free','Greenguard Certified','Vegan','Cruelty Free','Non Toxic','Organic','FSC Certified'];
+const priceTiers = [
+  { label:'Saver', value:'Saver', maxPrice:75, query:'budget affordable sale outlet discount low price' },
+  { label:'Standard', value:'Standard', maxPrice:250, query:'popular best value regular price quality' },
+  { label:'Baller', value:'Baller', maxPrice:5000, query:'luxury designer premium high end Gucci Nordstrom Neiman Marcus Saks Bloomingdales Farfetch SSENSE Net-a-Porter Mr Porter' }
+] as const;
+type PriceTier = typeof priceTiers[number]['value'];
+const priceTierKey = 'cheaperfind:priceTier';
 const menTopSizes = ['Any','XS','S','M','L','XL','XXL'];
 const womenTopSizes = ['Any','XXS','XS','S','M','L','XL','XXL','00','0','2','4','6','8','10','12','14','16'];
 const menBottomSizes = ['Any','28','29','30','31','32','33','34','36','38','40','42'];
 const womenBottomSizes = ['Any','00','0','2','4','6','8','10','12','14','16','24','25','26','27','28','29','30','31','32'];
 const menShoeSizes = ['Any','6','6.5','7','7.5','8','8.5','9','9.5','10','10.5','11','11.5','12','12.5','13','14','15'];
 const womenShoeSizes = ['Any','5','5.5','6','6.5','7','7.5','8','8.5','9','9.5','10','10.5','11','11.5','12'];
+function tierInfo(tier: PriceTier){ return priceTiers.find(t=>t.value===tier) || priceTiers[1]; }
+function storedTier(): PriceTier { if (typeof window === 'undefined') return 'Standard'; const saved = localStorage.getItem(priceTierKey); return priceTiers.some(t=>t.value===saved) ? saved as PriceTier : 'Standard'; }
 
 export default function StylePage() {
   const [style, setStyle] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [gender, setGender] = useState('Men');
+  const [gender, setGender] = useState('Mens');
   const [category, setCategory] = useState('Clothes');
   const [topSize, setTopSize] = useState('Any');
   const [bottomSize, setBottomSize] = useState('Any');
   const [shoeSize, setShoeSize] = useState('Any');
   const [specialFilters, setSpecialFilters] = useState<string[]>([]);
-  const [maxPrice, setMaxPrice] = useState(500);
+  const [priceTier, setPriceTier] = useState<PriceTier>('Standard');
   const [items, setItems] = useState<any[]>([]);
   const [seenKeys, setSeenKeys] = useState<string[]>([]);
   const [index, setIndex] = useState(0);
@@ -36,46 +45,39 @@ export default function StylePage() {
   const [animating, setAnimating] = useState<'left' | 'right' | null>(null);
   const [canUndo, setCanUndo] = useState(false);
 
-  const topSizes = gender === 'Women' ? womenTopSizes : menTopSizes;
-  const bottomSizes = gender === 'Women' ? womenBottomSizes : menBottomSizes;
-  const shoeSizes = gender === 'Women' ? womenShoeSizes : menShoeSizes;
+  useEffect(()=>{ setPriceTier(storedTier()); },[]);
+  const topSizes = gender === 'Womens' ? womenTopSizes : menTopSizes;
+  const bottomSizes = gender === 'Womens' ? womenBottomSizes : menBottomSizes;
+  const shoeSizes = gender === 'Womens' ? womenShoeSizes : menShoeSizes;
 
   function toggleSpecial(name:string){ setSpecialFilters(current => current.includes(name) ? current.filter(x => x !== name) : [...current, name]); }
   function handleGender(next:string){ setGender(next); setTopSize('Any'); setBottomSize('Any'); setShoeSize('Any'); }
+  function handleTier(next: PriceTier){ setPriceTier(next); localStorage.setItem(priceTierKey, next); }
   function buildQuery() {
-    const parts = [style.trim(), 'clothes'];
+    const tier = tierInfo(priceTier);
+    const parts = [style.trim(), 'clothes', tier.query];
     if (gender) parts.unshift(gender);
     if (category !== 'Clothes') parts.push(category);
     if (topSize !== 'Any') parts.push(`top size ${topSize}`);
     if (bottomSize !== 'Any') parts.push(`bottom size ${bottomSize}`);
     if (shoeSize !== 'Any') parts.push(`shoe size ${shoeSize}`);
     if (specialFilters.length) parts.push(specialFilters.join(' '));
-    parts.push(`under $${maxPrice}`);
     parts.push('apparel fashion outfit wearable only');
     return parts.filter(Boolean).join(' ');
   }
   async function loadMore(nextIndex = index, incomingSeen = seenKeys) {
-    const res = await fetch('/api/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: buildQuery(), mode: 'style', page: Math.floor(nextIndex / 20) + 1, specialFilters, maxPrice, excludeKeys: incomingSeen, seed: Date.now() + nextIndex }) });
+    const tier = tierInfo(priceTier);
+    const res = await fetch('/api/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: buildQuery(), mode: 'style', page: Math.floor(nextIndex / 20) + 1, specialFilters, priceTier, maxPrice: tier.maxPrice, excludeKeys: incomingSeen, seed: Date.now() + nextIndex }) });
     const data = await res.json();
     const next = (data.results || []).filter((p:any)=>p.productKey && !incomingSeen.includes(p.productKey));
     const newKeys = next.map((p:any)=>p.productKey).filter(Boolean);
     setSeenKeys(current => Array.from(new Set([...current, ...newKeys])));
     setItems(current => [...current, ...next]);
   }
-  async function generate() {
-    setSearched(true); setLoading(true); setWarned(false); setSwipeCount(0); setCanUndo(false); setItems([]); setSeenKeys([]); setIndex(0);
-    try { await loadMore(0, []); } finally { setLoading(false); }
-  }
+  async function generate() { setSearched(true); setLoading(true); setWarned(false); setSwipeCount(0); setCanUndo(false); setItems([]); setSeenKeys([]); setIndex(0); try { await loadMore(0, []); } finally { setLoading(false); } }
   function resetSearch() { setSearched(false); setItems([]); setSeenKeys([]); setIndex(0); setAnimating(null); setTouchX(0); targetX.current = 0; setCanUndo(false); }
   function undoLast() { if (!canUndo || index <= 0 || animating) return; setIndex(index - 1); setTouchX(0); targetX.current = 0; setCanUndo(false); }
-  function finishAdvance(add: boolean) {
-    const item = items[index]; if (!item) return;
-    if (add) addToCart(item);
-    const nextCount = swipeCount + 1; setSwipeCount(nextCount);
-    if (nextCount === 20 && !warned) { alert('Slow down — you swiped 20 products.'); setWarned(true); }
-    const nextIndex = index + 1; setIndex(nextIndex); setCanUndo(true); setTouchX(0); targetX.current = 0; setAnimating(null);
-    if (items.length - nextIndex < 7) loadMore(nextIndex);
-  }
+  function finishAdvance(add: boolean) { const item = items[index]; if (!item) return; if (add) addToCart(item); const nextCount = swipeCount + 1; setSwipeCount(nextCount); if (nextCount === 20 && !warned) { alert('Slow down — you swiped 20 products.'); setWarned(true); } const nextIndex = index + 1; setIndex(nextIndex); setCanUndo(true); setTouchX(0); targetX.current = 0; setAnimating(null); if (items.length - nextIndex < 7) loadMore(nextIndex); }
   function advance(add: boolean) { if (animating) return; setAnimating(add ? 'right' : 'left'); setTimeout(() => finishAdvance(add), 260); }
   useEffect(() => { function onKeyDown(e: KeyboardEvent) { if (!items[index] || animating) return; if (e.key === 'ArrowLeft') advance(false); if (e.key === 'ArrowRight') advance(true); } window.addEventListener('keydown', onKeyDown); return () => window.removeEventListener('keydown', onKeyDown); }, [items, index, swipeCount, warned, animating]);
   function onTouchMove(e: React.TouchEvent) { if (touchStart === null || animating) return; e.preventDefault(); targetX.current = e.touches[0].clientX - touchStart; if (raf.current) cancelAnimationFrame(raf.current); raf.current = requestAnimationFrame(() => setTouchX(targetX.current)); }
@@ -99,7 +101,7 @@ export default function StylePage() {
           <details className="filterDrop"><summary>Top size · {topSize}</summary><select className="input" value={topSize} onChange={e=>setTopSize(e.target.value)}>{topSizes.map(s=><option key={s}>{s}</option>)}</select></details>
           <details className="filterDrop"><summary>Bottom size · {bottomSize}</summary><select className="input" value={bottomSize} onChange={e=>setBottomSize(e.target.value)}>{bottomSizes.map(s=><option key={s}>{s}</option>)}</select></details>
           <details className="filterDrop"><summary>Shoe size · {shoeSize}</summary><select className="input" value={shoeSize} onChange={e=>setShoeSize(e.target.value)}>{shoeSizes.map(s=><option key={s}>{s}</option>)}</select></details>
-          <details className="filterDrop"><summary>Price · Under ${maxPrice}</summary><div className="sliderBlock"><div className="sliderTop"><strong>${maxPrice}</strong></div><input className="priceSlider" type="range" min="10" max="1000" step="10" value={maxPrice} onChange={e=>setMaxPrice(Number(e.target.value))} /></div></details>
+          <details className="filterDrop"><summary>Price · {priceTier}</summary><div className="tierOptions">{priceTiers.map(t => <button type="button" key={t.value} className={priceTier === t.value ? 'tierButton active' : 'tierButton'} onClick={()=>handleTier(t.value)}><strong>{t.label}</strong></button>)}</div></details>
           <details className="filterDrop"><summary>Special filters · {specialFilters.length ? specialFilters.length + ' selected' : 'None'}</summary><div className="filterRow">{specialOptions.map(name => <button type="button" key={name} className={specialFilters.includes(name) ? 'filter active greenFilter' : 'filter'} onClick={()=>toggleSpecial(name)}>{name}</button>)}</div></details>
         </div>}
         <button className="button" onClick={generate} disabled={!style.trim() || loading}>{loading ? 'Generating...' : 'Generate'}</button>
