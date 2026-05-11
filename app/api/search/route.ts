@@ -1,10 +1,49 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
+const BLOCKED_MARKETPLACES = [
+  'temu','shein','aliexpress','alibaba','dhgate','taobao','tiktok shop','tiktok','wish','banggood','lightinthebox','romwe','jollychic','gearbest'
+];
+const TRUSTED_STORES = /amazon|walmart|target|bestbuy|best buy|nike|adidas|apple|zara|hm.com|h&m|uniqlo|asos|nordstrom|macys|macy|gap|old navy|urban outfitters|stockx|goat|ebay|etsy|depop|poshmark|mercari|rei|backcountry|dicks|dick's|costco|sam's club|samsclub|wayfair|home depot|lowe's/i;
+const GREEN_WORDS = /organic|recycled|sustainable|eco|fair trade|certified|gots|oeko|bluesign|green|responsible|cotton|linen|hemp|bamboo|vegan/i;
+const KNOWN_BRANDS = ['nike','adidas','apple','sony','dyson','stanley','yeti','hydro flask','lululemon','alo','zara','uniqlo','h&m','old navy','gap','carhartt','levi','levi\'s','north face','patagonia','new balance','asics','puma','reebok','vans','converse','fashion nova','amazon basics'];
+
 function cleanText(v=''){return v.replace(/\s+/g,' ').trim();}
-function extractPrice(v=''){const m=String(v).replace(/,/g,'').match(/\$?([0-9]+(?:\.[0-9]{1,2})?)/);return m?Number(m[1]):0;}
-function cheapTrust(source='',link=''){const t=(source+link).toLowerCase();if(/amazon|walmart|target|nike|apple|bestbuy|zara|hm.com|uniqlo|asos|nordstrom|macys|gap|urbanoutfitters|stockx|goat/.test(t))return 9;if(/ebay|depop|poshmark|mercari|etsy/.test(t))return 7;return 6;}
+function extractPrice(v:any=''){const m=String(v).replace(/,/g,'').match(/\$?([0-9]+(?:\.[0-9]{1,2})?)/);return m?Number(m[1]):0;}
 function isAbsoluteUrl(link=''){return /^https?:\/\//i.test(link);}
+function productKey(p:any){return cleanText(`${p.title || ''}-${p.source || ''}-${p.extractedPrice || p.price || ''}`).toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,180);}
+function shuffle<T>(arr:T[], seed=1){
+  const out=[...arr];
+  let s=Math.max(1,Number(seed)||1)*9301+49297;
+  for(let i=out.length-1;i>0;i--){s=(s*9301+49297)%233280;const j=Math.floor((s/233280)*(i+1));[out[i],out[j]]=[out[j],out[i]];}
+  return out;
+}
+function blockedStore(source='',link='',title=''){
+  const t=`${source} ${link} ${title}`.toLowerCase();
+  return BLOCKED_MARKETPLACES.some(x=>t.includes(x));
+}
+function cheapTrust(source='',link='',title=''){
+  const t=(source+link+title).toLowerCase();
+  if(blockedStore(source,link,title))return 1;
+  if(/amazon|walmart|target|bestbuy|best buy|nike|apple|adidas|zara|hm.com|uniqlo|asos|nordstrom|macys|gap|old navy|urbanoutfitters|urban outfitters|stockx|goat|rei|costco/.test(t))return 9;
+  if(/ebay|depop|poshmark|mercari|etsy/.test(t))return 7;
+  if(TRUSTED_STORES.test(t))return 8;
+  return 6;
+}
+function dealRating(price:number, median:number, trust:number){
+  if(!price || !median)return 5;
+  const value = median / price;
+  let score = value >= 1.8 ? 10 : value >= 1.45 ? 9 : value >= 1.25 ? 8 : value >= 1.05 ? 7 : value >= .9 ? 6 : value >= .75 ? 5 : value >= .6 ? 4 : 3;
+  if(trust <= 4) score = Math.min(score,4);
+  if(trust >= 8 && score >= 6) score += 1;
+  return Math.max(1,Math.min(10,score));
+}
+function greenScore(title='',source=''){
+  const t=`${title} ${source}`;
+  if(/gots|oeko|bluesign|fair trade certified|certified organic/i.test(t))return 10;
+  if(GREEN_WORDS.test(t))return 8;
+  return 4;
+}
 function safeFallbackLink(title='', query=''){return `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(title || query || 'product')}`;}
 function bestDirectLink(r:any, query=''){
   let link = r.link || r.product_link || r.merchant?.link || r.seller_link || '';
@@ -20,9 +59,24 @@ function bestDirectLink(r:any, query=''){
 }
 function isApparel(r:any){
   const text = `${r.title || ''} ${r.source || ''} ${r.seller || ''}`.toLowerCase();
-  const apparel = /shirt|t-shirt|tee|hoodie|sweatshirt|jacket|coat|pants|jeans|shorts|dress|skirt|sweater|cardigan|blazer|tank|top|cargo|trousers|denim|flannel|vest|sneaker|shoe|boot|loafer|sandal|hat|cap|beanie|belt|bag|purse|backpack|apparel|clothing|outfit/.test(text);
+  const apparel = /shirt|t-shirt|tee|hoodie|sweatshirt|jacket|coat|pants|jeans|shorts|dress|skirt|sweater|cardigan|blazer|tank|top|cargo|trousers|denim|flannel|vest|sneaker|shoe|boot|loafer|sandal|hat|cap|beanie|belt|bag|purse|backpack|apparel|clothing|outfit|linen|cotton/.test(text);
   const bad = /plug|adapter|charger|cable|battery|replacement|case|screen|protector|tool|lamp|light|toy|book|food|supplement|vitamin|part|input|power|electrical|connector/.test(text);
   return apparel && !bad;
+}
+function detectBrand(q=''){
+  const lower=q.toLowerCase();
+  return KNOWN_BRANDS.find(b=>lower.includes(b));
+}
+function buildSearchQuery(base='', opts:any={}){
+  let q=cleanText(base);
+  const brand=detectBrand(q);
+  if(brand){
+    const rx=new RegExp(`\\b${brand.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\b`,'i');
+    q=`${brand} ${q.replace(rx,'').trim()}`.trim();
+  }
+  if(opts.greenCertified) q += ' sustainable certified organic recycled eco';
+  if(opts.cheapFinds) q += ' under 50 sale discount affordable';
+  return cleanText(q);
 }
 async function identifyImage(imageData:string){
   if(!imageData || !process.env.OPENAI_API_KEY) return '';
@@ -39,34 +93,54 @@ async function identifyImage(imageData:string){
       }]
     });
     return cleanText(response.output_text || '');
-  }catch{
-    return '';
-  }
+  }catch{return '';}
 }
-async function shoppingSearch(query:string,page=1,apparelOnly=false){
+async function shoppingSearch(query:string,page=1,opts:any={}){
   const key=process.env.SERPAPI_KEY;
   if(!key || !query)return [];
-  const url=new URL('https://serpapi.com/search.json');
-  url.searchParams.set('engine','google_shopping');
-  url.searchParams.set('q',query);
-  url.searchParams.set('api_key',key);
-  url.searchParams.set('start',String((page-1)*20));
-  url.searchParams.set('gl','us');
-  url.searchParams.set('hl','en');
-  const res=await fetch(url.toString(),{cache:'no-store'});
-  const data=await res.json();
-  return (data.shopping_results||[])
-    .filter((r:any)=>r.title && (r.price||r.extracted_price) && (!apparelOnly || isApparel(r)))
+  const pages=[page, page+1, page+2];
+  const raw:any[]=[];
+  for(const p of pages){
+    const url=new URL('https://serpapi.com/search.json');
+    url.searchParams.set('engine','google_shopping');
+    url.searchParams.set('q',query);
+    url.searchParams.set('api_key',key);
+    url.searchParams.set('start',String((p-1)*20));
+    url.searchParams.set('gl','us');
+    url.searchParams.set('hl','en');
+    const res=await fetch(url.toString(),{cache:'no-store'});
+    const data=await res.json();
+    raw.push(...(data.shopping_results||[]));
+  }
+  const mapped = raw
+    .filter((r:any)=>r.title && (r.price||r.extracted_price))
+    .filter((r:any)=>!blockedStore(r.source||r.seller||'', bestDirectLink(r,query), r.title||''))
+    .filter((r:any)=>!opts.apparelOnly || isApparel(r))
     .map((r:any)=>{
       const priceNum=extractPrice(r.price||r.extracted_price);
       const direct=bestDirectLink(r, query);
-      return {title:r.title,price:r.price||`$${priceNum}`,extractedPrice:priceNum,source:r.source||r.seller||'Store',link:direct,image:r.thumbnail||r.serpapi_thumbnail||'',dealRating:Math.round(Math.min(10,Math.max(1,10-(priceNum/50)))),cheapTrustRating:cheapTrust(r.source||r.seller||'',direct)};
+      const source=r.source||r.seller||'Store';
+      const trust=cheapTrust(source,direct,r.title);
+      return {title:r.title,price:r.price||`$${priceNum}`,extractedPrice:priceNum,source,link:direct,image:r.thumbnail||r.serpapi_thumbnail||'',cheapTrustRating:trust,greenRating:greenScore(r.title,source)};
     })
-    .filter((p:any)=>isAbsoluteUrl(p.link))
-    .sort((a:any,b:any)=>a.extractedPrice-b.extractedPrice);
+    .filter((p:any)=>isAbsoluteUrl(p.link) && p.extractedPrice>0)
+    .filter((p:any)=>!opts.greenCertified || p.greenRating >= 8);
+
+  const prices=mapped.map((p:any)=>p.extractedPrice).sort((a:number,b:number)=>a-b);
+  const median=prices.length ? prices[Math.floor(prices.length/2)] : 0;
+  const seen=new Set<string>(opts.excludeKeys || []);
+  const deduped:any[]=[];
+  for(const p of mapped){
+    const key=productKey(p);
+    if(seen.has(key)) continue;
+    seen.add(key);
+    deduped.push({...p, productKey:key, dealRating:dealRating(p.extractedPrice,median,p.cheapTrustRating)});
+  }
+  const sorted = opts.cheapFinds ? deduped.sort((a,b)=>a.extractedPrice-b.extractedPrice) : shuffle(deduped, opts.seed || page).sort((a,b)=>b.cheapTrustRating-a.cheapTrustRating || b.dealRating-a.dealRating);
+  return sorted;
 }
 export async function POST(req:Request){
-  const {description,url,imageData,page,mode}=await req.json();
+  const {description,url,imageData,page,mode,greenCertified,cheapFinds,excludeKeys,seed}=await req.json();
   let query='';
   const apparelOnly = mode === 'style' || (description || '').toLowerCase().includes('apparel only');
 
@@ -74,13 +148,12 @@ export async function POST(req:Request){
     const identified = await identifyImage(imageData);
     query = identified ? `${identified} cheaper alternatives buy` : '';
   }
-
   if(!query && description && description.trim().length>2){
-    query=cleanText(description) + (apparelOnly ? ' clothing apparel outfit fashion' : ' cheaper alternatives buy');
+    query=cleanText(description) + (apparelOnly ? ' clothing apparel outfit fashion' : ' buy');
   }else if(!query && url){
     try{const u=new URL(url);query=cleanText(u.pathname.replace(/[-_/]/g,' ')) + ' cheaper alternatives buy';}catch{query=url;}
   }
-
-  const results=await shoppingSearch(query,page||1,apparelOnly);
+  query=buildSearchQuery(query,{greenCertified,cheapFinds});
+  const results=await shoppingSearch(query,page||1,{apparelOnly,greenCertified,cheapFinds,excludeKeys,seed});
   return NextResponse.json({results, query});
 }
