@@ -30,6 +30,8 @@ export default function Home() {
   const [description, setDescription] = useState('');
   const [url, setUrl] = useState('');
   const [imageData, setImageData] = useState<string>('');
+  const [greenCertified, setGreenCertified] = useState(false);
+  const [cheapFinds, setCheapFinds] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -45,7 +47,7 @@ export default function Home() {
       const res = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: description.trim(), url: url.trim(), imageData })
+        body: JSON.stringify({ description: description.trim(), url: url.trim(), imageData, greenCertified, cheapFinds })
       });
       const data = await res.json();
       localStorage.setItem('cheaperfind:lastResults', JSON.stringify(data));
@@ -58,6 +60,10 @@ export default function Home() {
     <div className="card searchBox shopCard">
       <input className="input" placeholder="Describe product" value={description} onChange={e => setDescription(e.target.value)} />
       <input className="input" placeholder="Paste product link" value={url} onChange={e => setUrl(e.target.value)} />
+      <div className="filterRow">
+        <button type="button" className={greenCertified ? 'filter active greenFilter' : 'filter'} onClick={() => setGreenCertified(v => !v)}>Green Certified</button>
+        <button type="button" className={cheapFinds ? 'filter active cheapFilter' : 'filter'} onClick={() => setCheapFinds(v => !v)}>Cheap Finds</button>
+      </div>
       <label className="uploadBox"><input type="file" accept="image/*" onChange={e => onFile(e.target.files?.[0])} /><span>{imageData ? 'Photo ready' : 'Upload photo'}</span></label>
       {imageData && <img src={imageData} alt="preview" className="preview" />}
       <button className="button" onClick={search} disabled={loading || (!description && !url && !imageData)}>{loading ? 'Searching...' : 'Search'}</button>
