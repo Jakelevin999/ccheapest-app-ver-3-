@@ -55,7 +55,7 @@ export default function SettingsPage() {
 
     <div className="card settingsCard cleanSettingsCard compactSettingsCard">
       <h2>Default Spending</h2>
-      <p className="muted">Applies automatically to Shop and Style.</p>
+      <p style={{textAlign:'center',fontSize:'12px',opacity:0.68,fontWeight:600,margin:'-2px 0 10px',letterSpacing:'-0.01em'}}>Applies automatically to Shop and Style</p>
       <div className="tierOptions compactTierOptions settingsButtonGrid">{priceTiers.map(t => <button type="button" key={t} className={priceTier === t ? 'tierButton active' : 'tierButton'} onClick={() => setDefaultTier(t)}>{t}</button>)}</div>
     </div>
 
