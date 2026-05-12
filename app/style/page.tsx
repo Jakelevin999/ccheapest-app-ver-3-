@@ -8,7 +8,7 @@ const specialOptions = ['BPA Free','Greenguard Certified','Vegan','Cruelty Free'
 const priceTiers = [
   { label:'Saver', value:'Saver', maxPrice:75, query:'budget affordable sale outlet discount low price' },
   { label:'Standard', value:'Standard', maxPrice:250, query:'popular best value regular price quality' },
-  { label:'Baller', value:'Baller', maxPrice:5000, query:'luxury designer premium high end Gucci Nordstrom Neiman Marcus Saks Bloomingdales Farfetch SSENSE Net-a-Porter Mr Porter' }
+  { label:'Baller', value:'Baller', maxPrice:5000, query:'luxury designer premium high end Nordstrom Neiman Marcus Saks Bloomingdales Farfetch SSENSE Net-a-Porter Mr Porter Revolve FWRD Mytheresa Luisaviaroma Matchesfashion boutique' }
 ] as const;
 type PriceTier = typeof priceTiers[number]['value'];
 const priceTierKey = 'cheaperfind:priceTier';
@@ -38,8 +38,6 @@ export default function StylePage() {
   const [touchX, setTouchX] = useState(0);
   const targetX = useRef(0);
   const raf = useRef<number | null>(null);
-  const [swipeCount, setSwipeCount] = useState(0);
-  const [warned, setWarned] = useState(false);
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [animating, setAnimating] = useState<'left' | 'right' | null>(null);
@@ -74,12 +72,12 @@ export default function StylePage() {
     setSeenKeys(current => Array.from(new Set([...current, ...newKeys])));
     setItems(current => [...current, ...next]);
   }
-  async function generate() { setSearched(true); setLoading(true); setWarned(false); setSwipeCount(0); setCanUndo(false); setItems([]); setSeenKeys([]); setIndex(0); try { await loadMore(0, []); } finally { setLoading(false); } }
+  async function generate() { setSearched(true); setLoading(true); setCanUndo(false); setItems([]); setSeenKeys([]); setIndex(0); try { await loadMore(0, []); } finally { setLoading(false); } }
   function resetSearch() { setSearched(false); setItems([]); setSeenKeys([]); setIndex(0); setAnimating(null); setTouchX(0); targetX.current = 0; setCanUndo(false); }
   function undoLast() { if (!canUndo || index <= 0 || animating) return; setIndex(index - 1); setTouchX(0); targetX.current = 0; setCanUndo(false); }
-  function finishAdvance(add: boolean) { const item = items[index]; if (!item) return; if (add) addToCart(item); const nextCount = swipeCount + 1; setSwipeCount(nextCount); if (nextCount === 20 && !warned) { alert('Slow down — you swiped 20 products.'); setWarned(true); } const nextIndex = index + 1; setIndex(nextIndex); setCanUndo(true); setTouchX(0); targetX.current = 0; setAnimating(null); if (items.length - nextIndex < 7) loadMore(nextIndex); }
+  function finishAdvance(add: boolean) { const item = items[index]; if (!item) return; if (add) addToCart(item); const nextIndex = index + 1; setIndex(nextIndex); setCanUndo(true); setTouchX(0); targetX.current = 0; setAnimating(null); if (items.length - nextIndex < 7) loadMore(nextIndex); }
   function advance(add: boolean) { if (animating) return; setAnimating(add ? 'right' : 'left'); setTimeout(() => finishAdvance(add), 260); }
-  useEffect(() => { function onKeyDown(e: KeyboardEvent) { if (!items[index] || animating) return; if (e.key === 'ArrowLeft') advance(false); if (e.key === 'ArrowRight') advance(true); } window.addEventListener('keydown', onKeyDown); return () => window.removeEventListener('keydown', onKeyDown); }, [items, index, swipeCount, warned, animating]);
+  useEffect(() => { function onKeyDown(e: KeyboardEvent) { if (!items[index] || animating) return; if (e.key === 'ArrowLeft') advance(false); if (e.key === 'ArrowRight') advance(true); } window.addEventListener('keydown', onKeyDown); return () => window.removeEventListener('keydown', onKeyDown); }, [items, index, animating]);
   function onTouchMove(e: React.TouchEvent) { if (touchStart === null || animating) return; e.preventDefault(); targetX.current = e.touches[0].clientX - touchStart; if (raf.current) cancelAnimationFrame(raf.current); raf.current = requestAnimationFrame(() => setTouchX(targetX.current)); }
   function onTouchEnd(e: React.TouchEvent) { if (touchStart === null || animating) return; const diff = e.changedTouches[0].clientX - touchStart; setTouchStart(null); if (Math.abs(diff) > 70) diff > 0 ? advance(true) : advance(false); else { targetX.current = 0; setTouchX(0); } }
 
