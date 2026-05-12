@@ -37,3 +37,5 @@ Without keys, the app returns demo results so the UI still works.
 - Favorites can be saved locally with the heart button
 - Settings includes Light, Dark, and System theme modes
 - Favorites are stored in `localStorage` for the MVP. For production, connect the same UI to Supabase using `docs/supabase-schema.sql`.
+
+<!-- deployment trigger after reset -->
