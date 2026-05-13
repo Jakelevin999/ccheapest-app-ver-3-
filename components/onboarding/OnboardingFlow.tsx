@@ -8,7 +8,9 @@ import GenderStep from './GenderStep'
 import SpendingStep from './SpendingStep'
 import StylesStep from './StylesStep'
 import FinalStep from './FinalStep'
-
+import { signUp } from '../../lib/auth'
+import { supabase } from '../../lib/supabase'
+const [loading, setLoading] = useState(false)
 export default function OnboardingFlow() {
   const [step, setStep] = useState(0)
   const [profileImage, setProfileImage] = useState('')
@@ -20,25 +22,53 @@ export default function OnboardingFlow() {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
-
+const [loading, setLoading] = useState(false)
   const signupComplete =
     name.trim() &&
     email.trim() &&
     phone.trim() &&
     password.trim()
 
-  function next() {
+  async function next() {
     if (step === 1 && !signupComplete) {
       return
     }
 
     if (step === 6) {
-      localStorage.setItem('cheaperfind:onboardingComplete', 'true')
-      localStorage.setItem('cheaperfind:name', name)
-      localStorage.setItem('cheaperfind:email', email)
-      localStorage.setItem('cheaperfind:phone', phone)
-      window.location.href = '/'
-      return
+  setLoading(true)
+
+  const { data, error } = await signUp(email, password)
+
+  if (error || !data.user) {
+    console.error(error)
+    setLoading(false)
+    return
+  }
+
+  localStorage.setItem('cheaperfind:onboardingComplete', 'true')
+  localStorage.setItem('cheaperfind:name', name)
+  localStorage.setItem('cheaperfind:email', email)
+  localStorage.setItem('cheaperfind:phone', phone)
+
+  if (profileImage) {
+    localStorage.setItem('cheaperfind:profileImage', profileImage)
+  }
+
+  await supabase.from('profiles').upsert({
+    id: data.user.id,
+    full_name: name,
+    email,
+    phone,
+    profile_image: profileImage,
+    gender,
+    spending_tier: spending,
+    style_preferences: selectedStyles,
+    onboarding_complete: true
+  })
+
+  window.location.href = '/'
+  return
+}
     }
 
     setStep(step + 1)
@@ -77,13 +107,33 @@ export default function OnboardingFlow() {
         {step === 6 && <FinalStep />}
 
         <button
-          className='button'
-          onClick={next}
-          disabled={step === 1 && !signupComplete}
-          style={{opacity: step === 1 && !signupComplete ? 0.5 : 1}}
-        >
-          {step === 6 ? 'Start Shopping' : 'Continue'}
-        </button>
+  className='button'
+  onClick={next}
+  disabled={loading || (step === 1 && !signupComplete)}
+  style={{
+    opacity:
+      loading || (step === 1 && !signupComplete)
+        ? 0.5
+        : 1
+  }}
+>
+  {loading
+    ? 'Creating account...'
+    : step === 6
+    ? 'Start Shopping'
+    : 'Continue'}
+</button>
+        {step === 1 && (
+  <button
+    type='button'
+    className='button secondary'
+    onClick={() => {
+      window.location.href = '/login'
+    }}
+  >
+    Already have an account? Login
+  </button>
+)}
       </div>
     </div>
   )
