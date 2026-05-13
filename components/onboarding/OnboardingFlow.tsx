@@ -54,7 +54,7 @@ const isStepInvalid =
   (step === 5 && selectedStyles.length === 0)
 
   return (
-    {step === 0 && <WelcomeStep />}
+  {step === 0 && <WelcomeStep />}
 
 {step === 1 && (
   <SignupStep
