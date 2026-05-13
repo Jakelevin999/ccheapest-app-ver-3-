@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { signIn } from '../../lib/auth'
 import { supabase } from '../../lib/supabase'
+import { supabase } from '../lib/supabase'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
