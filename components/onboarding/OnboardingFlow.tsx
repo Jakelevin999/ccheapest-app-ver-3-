@@ -103,7 +103,6 @@ const isStepInvalid =
   (step === 4 && spending.trim() === '') ||
   (step === 5 && selectedStyles.length === 0)
 
-return (
   return (
     <div style={{position:'fixed',inset:0,width:'100vw',height:'100vh',background:'#f5f5f7',zIndex:999999,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',overflowY:'auto'}}>
       <div style={{width:'100%',maxWidth:560,display:'grid',gap:22}}>
