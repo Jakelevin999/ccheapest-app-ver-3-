@@ -95,7 +95,22 @@ if (step === 5 && selectedStyles.length === 0) {
         : [...current, style]
     )
   }
+function toggleStyle(style:string) {
+  setSelectedStyles(current =>
+    current.includes(style)
+      ? current.filter(x => x !== style)
+      : [...current, style]
+  )
+}
 
+const isStepInvalid =
+  (step === 1 && !signupComplete) ||
+  (step === 2 && profileImage.trim() === '') ||
+  (step === 3 && gender.trim() === '') ||
+  (step === 4 && spending.trim() === '') ||
+  (step === 5 && selectedStyles.length === 0)
+
+return (
   return (
     <div style={{position:'fixed',inset:0,width:'100vw',height:'100vh',background:'#f5f5f7',zIndex:999999,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',overflowY:'auto'}}>
       <div style={{width:'100%',maxWidth:560,display:'grid',gap:22}}>
@@ -122,28 +137,14 @@ if (step === 5 && selectedStyles.length === 0) return
         <button
   className='button'
   onClick={next}
- disabled={
-  loading ||
-  (step === 1 && !signupComplete) ||
-  (step === 2 && profileImage.trim() === '') ||
-  (step === 3 && gender.trim() === '') ||
-  (step === 4 && spending.trim() === '') ||
-  (step === 5 && selectedStyles.length === 0)
-}
-  style={{
-    opacity:
-      loading || (step === 1 && !signupComplete)
-        ? 0.5
-        : 1,
-    pointerEvents:
-  loading ||
-  (step === 1 && !signupComplete) ||
-  (step === 2 && profileImage.trim() === '') ||
-  (step === 3 && gender.trim() === '') ||
-  (step === 4 && spending.trim() === '') ||
-  (step === 5 && selectedStyles.length === 0)
-    ? 'none'
-    : 'auto'
+ disabled={loading || style={{
+  opacity: loading || isStepInvalid ? 0.5 : 1,
+  pointerEvents: loading || isStepInvalid ? 'none' : 'auto',
+  background:
+    loading || isStepInvalid
+      ? '#bdbdbd'
+      : '#000',
+  transition: '0.2s'
   }}
 >
   {loading
