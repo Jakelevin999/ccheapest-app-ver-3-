@@ -95,13 +95,6 @@ if (step === 5 && selectedStyles.length === 0) {
         : [...current, style]
     )
   }
-function toggleStyle(style:string) {
-  setSelectedStyles(current =>
-    current.includes(style)
-      ? current.filter(x => x !== style)
-      : [...current, style]
-  )
-}
 
 const isStepInvalid =
   (step === 1 && !signupComplete) ||
