@@ -1,4 +1,5 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
@@ -28,6 +29,7 @@ function compressImage(
   return new Promise(
     (resolve, reject) => {
       const img = new Image();
+
       const reader =
         new FileReader();
 
@@ -35,14 +37,15 @@ function compressImage(
         img.onload = () => {
           const max = 900;
 
-          const scale = Math.min(
-            1,
-            max /
-              Math.max(
-                img.width,
-                img.height
-              )
-          );
+          const scale =
+            Math.min(
+              1,
+              max /
+                Math.max(
+                  img.width,
+                  img.height
+                )
+            );
 
           const canvas =
             document.createElement(
@@ -56,7 +59,8 @@ function compressImage(
 
           canvas.height =
             Math.round(
-              img.height * scale
+              img.height *
+                scale
             );
 
           const ctx =
@@ -65,11 +69,13 @@ function compressImage(
             );
 
           if (!ctx) {
-            return reject(
+            reject(
               new Error(
                 'Canvas not supported'
               )
             );
+
+            return;
           }
 
           ctx.drawImage(
@@ -97,7 +103,9 @@ function compressImage(
 
       reader.onerror = reject;
 
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(
+        file
+      );
     }
   );
 }
@@ -126,33 +134,13 @@ export default function Home() {
   const [loading, setLoading] =
     useState(false);
 
-  const [profileName, setProfileName] =
-    useState('');
-
-  const [
-    profileEmail,
-    setProfileEmail
-  ] = useState('');
-
-  const [
-    profilePhone,
-    setProfilePhone
-  ] = useState('');
-
-  const [
-    profileImage,
-    setProfileImage
-  ] = useState('');
-
-  const [showEmail, setShowEmail] =
-    useState(false);
-
-  const [showPhone, setShowPhone] =
-    useState(false);
-
   const router = useRouter();
 
   useEffect(() => {
+    setTimeout(() => {
+      loadProfile();
+    }, 0);
+
     async function loadProfile() {
       const {
         data: { user }
@@ -183,46 +171,7 @@ export default function Home() {
       ) {
         setPriceTier(saved);
       }
-
-      const { data: profile } =
-        await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-      if (!profile) return;
-
-      setProfileName(
-        profile.full_name || ''
-      );
-
-      setProfileEmail(
-        profile.email || ''
-      );
-
-      setProfilePhone(
-        profile.phone || ''
-      );
-
-      setProfileImage(
-        profile.profile_image ||
-          profile.avatar_url ||
-          ''
-      );
-
-      setShowEmail(
-        profile.show_email ??
-          false
-      );
-
-      setShowPhone(
-        profile.show_phone ??
-          false
-      );
     }
-
-    loadProfile();
   }, [router]);
 
   function toggleSpecial(
@@ -232,7 +181,8 @@ export default function Home() {
       (current) =>
         current.includes(name)
           ? current.filter(
-              (x) => x !== name
+              (x) =>
+                x !== name
             )
           : [...current, name]
     );
@@ -243,10 +193,17 @@ export default function Home() {
   ) {
     if (!file) return;
 
-    const compressed =
-      await compressImage(file);
+    setLoading(true);
 
-    setImageData(compressed);
+    compressImage(file).then(
+      (compressed) => {
+        setImageData(
+          compressed
+        );
+
+        setLoading(false);
+      }
+    );
   }
 
   async function search() {
@@ -294,68 +251,7 @@ export default function Home() {
 
   return (
     <section className='shopHome'>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 14,
-          marginBottom: 24
-        }}
-      >
-        {profileImage && (
-          <img
-            src={profileImage}
-            alt='profile'
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius:
-                '999px',
-              objectFit: 'cover'
-            }}
-          />
-        )}
-
-        <div>
-          <div
-            style={{
-              height: 8
-            }}
-          />
-
-          <div
-            style={{
-              opacity: 0.7,
-              fontSize: 14
-            }}
-          >
-            {showEmail
-              ? profileEmail
-              : ''}
-          </div>
-
-          <div
-            style={{
-              opacity: 0.7,
-              fontSize: 14
-            }}
-          >
-            {showPhone
-              ? profilePhone
-              : ''}
-          </div>
-        </div>
-      </div>
-
-      <h1
-        style={{
-          width: '100%',
-          textAlign: 'left',
-          marginBottom: 10
-        }}
-      >
-        Shop
-      </h1>
+      <h1>Shop</h1>
 
       <div className='card searchBox shopCard'>
         <input
@@ -466,7 +362,8 @@ export default function Home() {
             accept='image/*'
             onChange={(e) =>
               onFile(
-                e.target.files?.[0]
+                e.target
+                  .files?.[0]
               )
             }
           />
