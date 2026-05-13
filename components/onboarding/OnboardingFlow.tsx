@@ -28,59 +28,12 @@ const [loading, setLoading] = useState(false)
     phone.trim() &&
     password.trim()
 
-  async function next() {
-  const canContinue =
-    step === 1
-      ? signupComplete
-      : step === 2
-      ? profileImage.trim() !== ''
-      : step === 3
-      ? gender.trim() !== ''
-      : step === 4
-      ? spending.trim() !== ''
-      : step === 5
-      ? selectedStyles.length > 0
-      : true
-
-  if (!canContinue) {
-    return
-  }
-
-  if (step === 6) {
-    setLoading(true)
-
-    const { data, error } = await signUp(email, password)
-
-    if (error || !data.user) {
-      console.error(error)
-      setLoading(false)
-      return
-    }
-
-    localStorage.setItem('cheaperfind:onboardingComplete', 'true')
-    localStorage.setItem('cheaperfind:name', name)
-    localStorage.setItem('cheaperfind:email', email)
-    localStorage.setItem('cheaperfind:phone', phone)
-
-    if (profileImage) {
-      localStorage.setItem('cheaperfind:profileImage', profileImage)
-    }
-
-    await supabase.from('profiles').upsert({
-      id: data.user.id,
-      full_name: name,
-      email,
-      phone,
-      profile_image: profileImage,
-      gender,
-      spending_tier: spending,
-      style_preferences: selectedStyles,
-      onboarding_complete: true
-    })
-
-    window.location.href = '/'
-    return
-  }
+function next() {
+  if (step === 1 && (!name || !email || !phone || !password)) return
+  if (step === 2 && !profileImage) return
+  if (step === 3 && !gender) return
+  if (step === 4 && !spending) return
+  if (step === 5 && selectedStyles.length === 0) return
 
   setStep(step + 1)
 }
@@ -115,25 +68,19 @@ const isStepInvalid =
             setPhone={setPhone}
             password={password}
             setPassword={setPassword}
-          />
-        )}
-if (step === 1 && !signupComplete) return
-if (step === 2 && profileImage.trim() === '') return
-if (step === 3 && gender.trim() === '') return
-if (step === 4 && spending.trim() === '') return
-if (step === 5 && selectedStyles.length === 0) return
-
-      <button
+            <button
+  type='button'
   className='button'
   onClick={next}
-  disabled={loading || isStepInvalid}
+  disabled={isStepInvalid}
   style={{
-    opacity: loading || isStepInvalid ? 0.5 : 1,
-    pointerEvents: loading || isStepInvalid ? 'none' : 'auto',
-    background: loading || isStepInvalid ? '#bdbdbd' : '#000',
+    opacity: isStepInvalid ? 0.5 : 1,
+    pointerEvents: isStepInvalid ? 'none' : 'auto',
+    background: isStepInvalid ? '#bdbdbd' : '#000',
     transition: '0.2s'
   }}
 >
+
   {loading
     ? 'Creating account...'
     : step === 6
