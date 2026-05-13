@@ -74,24 +74,33 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 24,
-        background: '#f5f5f7'
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 500,
-          display: 'grid',
-          gap: 18
-        }}
-      >
+   <div
+  style={{
+    position: 'fixed',
+    inset: 0,
+    width: '100vw',
+    height: '100vh',
+    background: '#f5f5f7',
+    zIndex: 999999,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '24px',
+    overflowY: 'auto'
+  }}
+>
+     <div
+  style={{
+    width: '100%',
+    maxWidth: 560,
+    display: 'grid',
+    gap: 22,
+    background: '#fff',
+    padding: '40px',
+    borderRadius: '32px',
+    boxShadow: '0 10px 40px rgba(0,0,0,0.08)'
+  }}
+>
         {step === 0 && (
           <>
             <h1>Welcome to CheaperFind</h1>
