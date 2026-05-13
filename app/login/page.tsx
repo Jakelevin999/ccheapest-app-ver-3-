@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { signIn } from '../../lib/auth'
+import { supabase } from '../../lib/supabase'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -10,18 +11,44 @@ export default function LoginPage() {
   const [error, setError] = useState('')
 
   async function handleLogin() {
-    setLoading(true)
-    setError('')
+  setLoading(true)
+  setError('')
 
-    const { error } = await signIn(email, password)
+  const { error } = await signIn(email, password)
 
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
-    }
+  if (error) {
+    setError(error.message)
+    setLoading(false)
+    return
+  }
+
+  const {
+    data: { user }
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    setError('User not found')
+    setLoading(false)
+    return
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.onboarding_complete) {
+    localStorage.setItem(
+      'cheaperfind:onboardingComplete',
+      'true'
+    )
 
     window.location.href = '/'
+    return
+  }
+
+  window.location.href = '/onboarding'
   }
 
   return (
