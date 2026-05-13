@@ -17,6 +17,10 @@ export default function SettingsPage() {
 
   const [newPassword, setNewPassword] = useState('')
 
+  const [darkMode, setDarkMode] = useState(false)
+  const [notifications, setNotifications] =
+    useState(true)
+
   useEffect(() => {
     async function loadProfile() {
       setLoading(true)
@@ -84,7 +88,11 @@ export default function SettingsPage() {
   }
 
   if (loading) {
-    return <div style={{ padding: 40 }}>Loading...</div>
+    return (
+      <div style={{ padding: 40 }}>
+        Loading...
+      </div>
+    )
   }
 
   return (
@@ -101,120 +109,198 @@ export default function SettingsPage() {
         style={{
           width: '100%',
           maxWidth: 620,
-          background: '#fff',
-          borderRadius: 28,
-          padding: 32,
           display: 'grid',
-          gap: 18,
-          boxShadow: '0 10px 40px rgba(0,0,0,0.08)'
+          gap: 24
         }}
       >
-        <h1 style={{ margin: 0, fontSize: 48 }}>
-          Settings
-        </h1>
-
-        {profileImage && (
-          <img
-            src={profileImage}
-            alt='profile'
+        <div
+          style={{
+            background: '#fff',
+            borderRadius: 28,
+            padding: 32,
+            display: 'grid',
+            gap: 18,
+            boxShadow:
+              '0 10px 40px rgba(0,0,0,0.08)'
+          }}
+        >
+          <h1
             style={{
-              width: 120,
-              height: 120,
-              borderRadius: '999px',
-              objectFit: 'cover'
+              margin: 0,
+              fontSize: 48
             }}
-          />
-        )}
+          >
+            Settings
+          </h1>
 
-        <input
-          className='input'
-          placeholder='Profile Image URL'
-          value={profileImage}
-          onChange={(e) =>
-            setProfileImage(e.target.value)
-          }
-        />
+          {profileImage && (
+            <img
+              src={profileImage}
+              alt='profile'
+              style={{
+                width: 120,
+                height: 120,
+                borderRadius: '999px',
+                objectFit: 'cover'
+              }}
+            />
+          )}
 
-        <input
-          className='input'
-          placeholder='Full Name'
-          value={profileName}
-          onChange={(e) =>
-            setProfileName(e.target.value)
-          }
-        />
-
-        <input
-          className='input'
-          placeholder='Email'
-          value={profileEmail}
-          onChange={(e) =>
-            setProfileEmail(e.target.value)
-          }
-        />
-
-        <input
-          className='input'
-          placeholder='Phone'
-          value={profilePhone}
-          onChange={(e) =>
-            setProfilePhone(e.target.value)
-          }
-        />
-
-        <label
-          style={{
-            display: 'flex',
-            gap: 12,
-            alignItems: 'center'
-          }}
-        >
           <input
-            type='checkbox'
-            checked={showEmail}
+            className='input'
+            placeholder='Profile Image URL'
+            value={profileImage}
             onChange={(e) =>
-              setShowEmail(e.target.checked)
+              setProfileImage(e.target.value)
             }
           />
 
-          Show email publicly
-        </label>
-
-        <label
-          style={{
-            display: 'flex',
-            gap: 12,
-            alignItems: 'center'
-          }}
-        >
           <input
-            type='checkbox'
-            checked={showPhone}
+            className='input'
+            placeholder='Full Name'
+            value={profileName}
             onChange={(e) =>
-              setShowPhone(e.target.checked)
+              setProfileName(e.target.value)
             }
           />
 
-          Show phone publicly
-        </label>
+          <input
+            className='input'
+            placeholder='Email'
+            value={profileEmail}
+            onChange={(e) =>
+              setProfileEmail(e.target.value)
+            }
+          />
 
-        <input
-          className='input'
-          type='password'
-          placeholder='New Password'
-          value={newPassword}
-          onChange={(e) =>
-            setNewPassword(e.target.value)
-          }
-        />
+          <input
+            className='input'
+            placeholder='Phone'
+            value={profilePhone}
+            onChange={(e) =>
+              setProfilePhone(e.target.value)
+            }
+          />
 
-        <button
-          className='button'
-          onClick={saveProfile}
-          disabled={saving}
+          <label
+            style={{
+              display: 'flex',
+              gap: 12,
+              alignItems: 'center'
+            }}
+          >
+            <input
+              type='checkbox'
+              checked={showEmail}
+              onChange={(e) =>
+                setShowEmail(e.target.checked)
+              }
+            />
+
+            Show email publicly
+          </label>
+
+          <label
+            style={{
+              display: 'flex',
+              gap: 12,
+              alignItems: 'center'
+            }}
+          >
+            <input
+              type='checkbox'
+              checked={showPhone}
+              onChange={(e) =>
+                setShowPhone(e.target.checked)
+              }
+            />
+
+            Show phone publicly
+          </label>
+
+          <input
+            className='input'
+            type='password'
+            placeholder='New Password'
+            value={newPassword}
+            onChange={(e) =>
+              setNewPassword(e.target.value)
+            }
+          />
+
+          <button
+            className='button'
+            onClick={saveProfile}
+            disabled={saving}
+          >
+            {saving
+              ? 'Saving...'
+              : 'Save Changes'}
+          </button>
+        </div>
+
+        <div
+          style={{
+            background: '#fff',
+            borderRadius: 28,
+            padding: 32,
+            display: 'grid',
+            gap: 20,
+            boxShadow:
+              '0 10px 40px rgba(0,0,0,0.08)'
+          }}
         >
-          {saving ? 'Saving...' : 'Save Changes'}
-        </button>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: 28
+            }}
+          >
+            App Preferences
+          </h2>
+
+          <label
+            style={{
+              display: 'flex',
+              justifyContent:
+                'space-between',
+              alignItems: 'center'
+            }}
+          >
+            Dark Mode
+
+            <input
+              type='checkbox'
+              checked={darkMode}
+              onChange={(e) =>
+                setDarkMode(
+                  e.target.checked
+                )
+              }
+            />
+          </label>
+
+          <label
+            style={{
+              display: 'flex',
+              justifyContent:
+                'space-between',
+              alignItems: 'center'
+            }}
+          >
+            Notifications
+
+            <input
+              type='checkbox'
+              checked={notifications}
+              onChange={(e) =>
+                setNotifications(
+                  e.target.checked
+                )
+              }
+            />
+          </label>
+        </div>
       </div>
     </div>
   )
