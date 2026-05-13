@@ -17,10 +17,6 @@ export default function SettingsPage() {
 
   const [newPassword, setNewPassword] = useState('')
 
-  const [darkMode, setDarkMode] = useState(false)
-  const [notifications, setNotifications] =
-    useState(true)
-
   useEffect(() => {
     async function loadProfile() {
       setLoading(true)
@@ -41,12 +37,29 @@ export default function SettingsPage() {
         .single()
 
       if (profile) {
-        setProfileName(profile.full_name || '')
+        setProfileName(
+          profile.full_name ||
+            profile.username ||
+            ''
+        )
+
         setProfileEmail(profile.email || '')
+
         setProfilePhone(profile.phone || '')
-        setProfileImage(profile.profile_image || '')
-        setShowEmail(profile.show_email ?? true)
-        setShowPhone(profile.show_phone ?? false)
+
+        setProfileImage(
+          profile.profile_image ||
+            profile.avatar_url ||
+            ''
+        )
+
+        setShowEmail(
+          profile.show_email ?? true
+        )
+
+        setShowPhone(
+          profile.show_phone ?? false
+        )
       }
 
       setLoading(false)
@@ -68,10 +81,16 @@ export default function SettingsPage() {
       .from('profiles')
       .upsert({
         id: user.id,
+
         full_name: profileName,
+        username: profileName,
+
         email: profileEmail,
         phone: profilePhone,
+
         profile_image: profileImage,
+        avatar_url: profileImage,
+
         show_email: showEmail,
         show_phone: showPhone
       })
@@ -99,68 +118,133 @@ export default function SettingsPage() {
     <div
       style={{
         minHeight: '100vh',
-        background: '#f5f5f7',
-        padding: '32px',
-        display: 'flex',
-        justifyContent: 'center'
+        background: '#0a0a0a',
+        color: '#fff',
+        padding: '24px'
       }}
     >
       <div
         style={{
-          width: '100%',
-          maxWidth: 620,
+          maxWidth: 700,
+          margin: '0 auto',
           display: 'grid',
           gap: 24
         }}
       >
         <div
           style={{
-            background: '#fff',
-            borderRadius: 28,
-            padding: 32,
-            display: 'grid',
-            gap: 18,
-            boxShadow:
-              '0 10px 40px rgba(0,0,0,0.08)'
+            display: 'flex',
+            alignItems: 'center',
+            gap: 20
           }}
         >
-          <h1
+          <label
             style={{
-              margin: 0,
-              fontSize: 48
+              position: 'relative',
+              cursor: 'pointer'
             }}
           >
-            Settings
-          </h1>
+            <input
+              type='file'
+              accept='image/*'
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const file =
+                  e.target.files?.[0]
 
-          {profileImage && (
-            <img
-              src={profileImage}
-              alt='profile'
-              style={{
-                width: 120,
-                height: 120,
-                borderRadius: '999px',
-                objectFit: 'cover'
+                if (!file) return
+
+                const reader =
+                  new FileReader()
+
+                reader.onloadend = () => {
+                  setProfileImage(
+                    reader.result as string
+                  )
+                }
+
+                reader.readAsDataURL(file)
               }}
             />
-          )}
 
-          <input
-            className='input'
-            placeholder='Profile Image URL'
-            value={profileImage}
-            onChange={(e) =>
-              setProfileImage(e.target.value)
-            }
-          />
+            <div
+              style={{
+                width: 110,
+                height: 110,
+                borderRadius: '999px',
+                overflow: 'hidden',
+                background: '#222',
+                border:
+                  '3px solid rgba(255,255,255,0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {profileImage ? (
+                <img
+                  src={profileImage}
+                  alt='profile'
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover'
+                  }}
+                />
+              ) : (
+                <span
+                  style={{
+                    fontSize: 13,
+                    opacity: 0.7
+                  }}
+                >
+                  Add Photo
+                </span>
+              )}
+            </div>
+          </label>
 
+          <div>
+            <h1
+              style={{
+                margin: 0,
+                fontSize: 42,
+                fontWeight: 800
+              }}
+            >
+              Settings
+            </h1>
+
+            <div
+              style={{
+                opacity: 0.65,
+                marginTop: 6
+              }}
+            >
+              Manage your account
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: '#141414',
+            borderRadius: 28,
+            padding: 24,
+            display: 'grid',
+            gap: 18,
+            border:
+              '1px solid rgba(255,255,255,0.08)'
+          }}
+        >
           <input
             className='input'
             placeholder='Full Name'
             value={profileName}
             onChange={(e) =>
-              setProfileName(e.target.value)
+              setProfileName(
+                e.target.value
+              )
             }
           />
 
@@ -169,7 +253,9 @@ export default function SettingsPage() {
             placeholder='Email'
             value={profileEmail}
             onChange={(e) =>
-              setProfileEmail(e.target.value)
+              setProfileEmail(
+                e.target.value
+              )
             }
           />
 
@@ -178,45 +264,61 @@ export default function SettingsPage() {
             placeholder='Phone'
             value={profilePhone}
             onChange={(e) =>
-              setProfilePhone(e.target.value)
+              setProfilePhone(
+                e.target.value
+              )
             }
           />
 
-          <label
+          <div
             style={{
-              display: 'flex',
-              gap: 12,
-              alignItems: 'center'
+              display: 'grid',
+              gap: 14,
+              marginTop: 4
             }}
           >
-            <input
-              type='checkbox'
-              checked={showEmail}
-              onChange={(e) =>
-                setShowEmail(e.target.checked)
-              }
-            />
+            <label
+              style={{
+                display: 'flex',
+                justifyContent:
+                  'space-between',
+                alignItems: 'center'
+              }}
+            >
+              Show email publicly
 
-            Show email publicly
-          </label>
+              <input
+                type='checkbox'
+                checked={showEmail}
+                onChange={(e) =>
+                  setShowEmail(
+                    e.target.checked
+                  )
+                }
+              />
+            </label>
 
-          <label
-            style={{
-              display: 'flex',
-              gap: 12,
-              alignItems: 'center'
-            }}
-          >
-            <input
-              type='checkbox'
-              checked={showPhone}
-              onChange={(e) =>
-                setShowPhone(e.target.checked)
-              }
-            />
+            <label
+              style={{
+                display: 'flex',
+                justifyContent:
+                  'space-between',
+                alignItems: 'center'
+              }}
+            >
+              Show phone publicly
 
-            Show phone publicly
-          </label>
+              <input
+                type='checkbox'
+                checked={showPhone}
+                onChange={(e) =>
+                  setShowPhone(
+                    e.target.checked
+                  )
+                }
+              />
+            </label>
+          </div>
 
           <input
             className='input'
@@ -224,7 +326,9 @@ export default function SettingsPage() {
             placeholder='New Password'
             value={newPassword}
             onChange={(e) =>
-              setNewPassword(e.target.value)
+              setNewPassword(
+                e.target.value
+              )
             }
           />
 
@@ -237,69 +341,6 @@ export default function SettingsPage() {
               ? 'Saving...'
               : 'Save Changes'}
           </button>
-        </div>
-
-        <div
-          style={{
-            background: '#fff',
-            borderRadius: 28,
-            padding: 32,
-            display: 'grid',
-            gap: 20,
-            boxShadow:
-              '0 10px 40px rgba(0,0,0,0.08)'
-          }}
-        >
-          <h2
-            style={{
-              margin: 0,
-              fontSize: 28
-            }}
-          >
-            App Preferences
-          </h2>
-
-          <label
-            style={{
-              display: 'flex',
-              justifyContent:
-                'space-between',
-              alignItems: 'center'
-            }}
-          >
-            Dark Mode
-
-            <input
-              type='checkbox'
-              checked={darkMode}
-              onChange={(e) =>
-                setDarkMode(
-                  e.target.checked
-                )
-              }
-            />
-          </label>
-
-          <label
-            style={{
-              display: 'flex',
-              justifyContent:
-                'space-between',
-              alignItems: 'center'
-            }}
-          >
-            Notifications
-
-            <input
-              type='checkbox'
-              checked={notifications}
-              onChange={(e) =>
-                setNotifications(
-                  e.target.checked
-                )
-              }
-            />
-          </label>
         </div>
       </div>
     </div>
