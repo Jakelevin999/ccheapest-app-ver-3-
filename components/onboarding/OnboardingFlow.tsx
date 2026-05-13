@@ -24,7 +24,7 @@ export default function OnboardingFlow() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
-  async function next() {
+ async function finishOnboarding() {
     if (loading) return
 
     if (step === 6) {
