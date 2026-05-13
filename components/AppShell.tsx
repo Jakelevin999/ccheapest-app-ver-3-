@@ -146,12 +146,7 @@ export default function AppShell({
               gap: 12
             }}
           >
-            <div
-              className='profileBubble'
-              style={{
-                overflow: 'hidden'
-              }}
-            >
+            <div className='profileBubble'>
               {pfp ? (
                 <img
                   src={pfp}
