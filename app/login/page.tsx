@@ -45,6 +45,7 @@ export default function LoginPage() {
       style={{
         position: 'fixed',
         inset: 0,
+        zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -61,13 +62,17 @@ export default function LoginPage() {
           gap: 18
         }}
       >
-        <h1 style={{ margin: 0 }}>Login</h1>
+        <h1 style={{ margin: 0 }}>
+          Login
+        </h1>
 
         <input
           className='input'
           placeholder='Email'
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) =>
+            setEmail(e.target.value)
+          }
         />
 
         <input
@@ -75,11 +80,18 @@ export default function LoginPage() {
           type='password'
           placeholder='Password'
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) =>
+            setPassword(e.target.value)
+          }
         />
 
         {error && (
-          <div style={{ color: 'red', fontSize: 14 }}>
+          <div
+            style={{
+              color: 'red',
+              fontSize: 14
+            }}
+          >
             {error}
           </div>
         )}
@@ -89,7 +101,9 @@ export default function LoginPage() {
           onClick={handleLogin}
           disabled={loading}
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loading
+            ? 'Logging in...'
+            : 'Login'}
         </button>
       </div>
     </div>
