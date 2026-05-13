@@ -135,6 +135,15 @@ if (step === 5 && selectedStyles.length === 0) return
       loading || (step === 1 && !signupComplete)
         ? 0.5
         : 1
+    pointerEvents:
+  loading ||
+  (step === 1 && !signupComplete) ||
+  (step === 2 && profileImage.trim() === '') ||
+  (step === 3 && gender.trim() === '') ||
+  (step === 4 && spending.trim() === '') ||
+  (step === 5 && selectedStyles.length === 0)
+    ? 'none'
+    : 'auto'
   }}
 >
   {loading
