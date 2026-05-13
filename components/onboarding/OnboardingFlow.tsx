@@ -14,8 +14,8 @@ export default function OnboardingFlow() {
   const [step, setStep] = useState(0)
   const [profileImage, setProfileImage] = useState('')
   const [selectedStyles, setSelectedStyles] = useState<string[]>([])
-  const [spending, setSpending] = useState('Standard')
-  const [gender, setGender] = useState('Mens')
+  const [spending, setSpending] = useState('')
+const [gender, setGender] = useState('')
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -113,22 +113,21 @@ if (step === 5 && selectedStyles.length === 0) {
             setPassword={setPassword}
           />
         )}
-
-        {step === 2 && <PhotoStep profileImage={profileImage} setProfileImage={setProfileImage} />}
-        {step === 3 && <GenderStep gender={gender} setGender={setGender} />}
-        {step === 4 && <SpendingStep spending={spending} setSpending={setSpending} />}
-        {step === 5 && <StylesStep selectedStyles={selectedStyles} toggleStyle={toggleStyle} />}
-        {step === 6 && <FinalStep />}
+if (step === 1 && !signupComplete) return
+if (step === 2 && profileImage.trim() === '') return
+if (step === 3 && gender.trim() === '') return
+if (step === 4 && spending.trim() === '') return
+if (step === 5 && selectedStyles.length === 0) return
 
         <button
   className='button'
   onClick={next}
-  disabled={
+ disabled={
   loading ||
   (step === 1 && !signupComplete) ||
-  (step === 2 && !profileImage) ||
-  (step === 3 && !gender) ||
-  (step === 4 && !spending) ||
+  (step === 2 && profileImage.trim() === '') ||
+  (step === 3 && gender.trim() === '') ||
+  (step === 4 && spending.trim() === '') ||
   (step === 5 && selectedStyles.length === 0)
 }
   style={{
