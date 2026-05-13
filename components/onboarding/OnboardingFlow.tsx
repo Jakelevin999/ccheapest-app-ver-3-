@@ -54,9 +54,69 @@ const isStepInvalid =
   (step === 5 && selectedStyles.length === 0)
 
   return (
-    <div style={{position:'fixed',inset:0,width:'100vw',height:'100vh',background:'#f5f5f7',zIndex:999999,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',overflowY:'auto'}}>
-      <div style={{width:'100%',maxWidth:560,display:'grid',gap:22}}>
-        {step === 0 && <WelcomeStep />}
+    {step === 0 && <WelcomeStep />}
+
+{step === 1 && (
+  <SignupStep
+    name={name}
+    setName={setName}
+    email={email}
+    setEmail={setEmail}
+    phone={phone}
+    setPhone={setPhone}
+    password={password}
+    setPassword={setPassword}
+  />
+)}
+
+{step === 2 && (
+  <PhotoStep
+    profileImage={profileImage}
+    setProfileImage={setProfileImage}
+  />
+)}
+
+{step === 3 && (
+  <GenderStep
+    gender={gender}
+    setGender={setGender}
+  />
+)}
+
+{step === 4 && (
+  <SpendingStep
+    spending={spending}
+    setSpending={setSpending}
+  />
+)}
+
+{step === 5 && (
+  <StylesStep
+    selectedStyles={selectedStyles}
+    toggleStyle={toggleStyle}
+  />
+)}
+
+{step === 6 && <FinalStep />}
+
+<button
+  type='button'
+  className='button'
+  onClick={next}
+  disabled={isStepInvalid}
+  style={{
+    opacity: isStepInvalid ? 0.5 : 1,
+    pointerEvents: isStepInvalid ? 'none' : 'auto',
+    background: isStepInvalid ? '#bdbdbd' : '#000',
+    transition: '0.2s'
+  }}
+>
+  {loading
+    ? 'Creating account...'
+    : step === 6
+    ? 'Start Shopping'
+    : 'Continue'}
+</button>
 
         {step === 1 && (
           <SignupStep
