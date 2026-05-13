@@ -4,18 +4,32 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 
 export default function SettingsPage() {
-  const [loading, setLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [loading, setLoading] =
+    useState(false)
 
-  const [profileName, setProfileName] = useState('')
-  const [profileEmail, setProfileEmail] = useState('')
-  const [profilePhone, setProfilePhone] = useState('')
-  const [profileImage, setProfileImage] = useState('')
+  const [saving, setSaving] =
+    useState(false)
 
-  const [showEmail, setShowEmail] = useState(true)
-  const [showPhone, setShowPhone] = useState(false)
+  const [profileName, setProfileName] =
+    useState('')
 
-  const [newPassword, setNewPassword] = useState('')
+  const [profileEmail, setProfileEmail] =
+    useState('')
+
+  const [profilePhone, setProfilePhone] =
+    useState('')
+
+  const [profileImage, setProfileImage] =
+    useState('')
+
+  const [showEmail, setShowEmail] =
+    useState(false)
+
+  const [showPhone, setShowPhone] =
+    useState(false)
+
+  const [newPassword, setNewPassword] =
+    useState('')
 
   useEffect(() => {
     async function loadProfile() {
@@ -23,52 +37,54 @@ export default function SettingsPage() {
 
       const {
         data: { user }
-      } = await supabase.auth.getUser()
+      } =
+        await supabase.auth.getUser()
 
       if (!user) {
-        window.location.href = '/login'
+        window.location.href =
+          '/login'
+
         return
       }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
+      const { data: profile } =
+        await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
 
-      setProfileName(
-        profile?.full_name ||
-          profile?.username ||
-          user.user_metadata?.full_name ||
-          ''
-      )
+      if (profile) {
+        setProfileName(
+          profile.full_name ||
+            profile.username ||
+            ''
+        )
 
-      setProfileEmail(
-        profile?.email ||
-          user.email ||
-          ''
-      )
+        setProfileEmail(
+          profile.email || ''
+        )
 
-      setProfilePhone(
-        profile?.phone ||
-          user.phone ||
-          user.user_metadata?.phone ||
-          ''
-      )
+        setProfilePhone(
+          profile.phone || ''
+        )
 
-      setProfileImage(
-        profile?.profile_image ||
-          profile?.avatar_url ||
-          ''
-      )
+        setProfileImage(
+          profile.profile_image ||
+            profile.avatar_url ||
+            ''
+        )
 
-      setShowEmail(
-        profile?.show_email ?? true
-      )
+        setShowEmail(
+          profile.show_email ??
+            false
+        )
 
-      setShowPhone(
-        profile?.show_phone ?? false
-      )
+        setShowPhone(
+          profile.show_phone ??
+            false
+        )
+      }
 
       setLoading(false)
     }
@@ -81,37 +97,65 @@ export default function SettingsPage() {
 
     const {
       data: { user }
-    } = await supabase.auth.getUser()
+    } =
+      await supabase.auth.getUser()
 
-    if (!user) return
+    if (!user) {
+      setSaving(false)
+      return
+    }
 
-    await supabase
-      .from('profiles')
-      .upsert({
-        id: user.id,
+    const updates = {
+      id: user.id,
 
-        full_name: profileName,
-        username: profileName,
+      full_name: profileName,
+      username: profileName,
 
-        email: profileEmail,
-        phone: profilePhone,
+      email: profileEmail,
+      phone: profilePhone,
 
-        profile_image: profileImage,
-        avatar_url: profileImage,
+      profile_image: profileImage,
+      avatar_url: profileImage,
 
-        show_email: showEmail,
-        show_phone: showPhone
-      })
+      show_email: showEmail,
+      show_phone: showPhone
+    }
+
+    const { error } =
+      await supabase
+        .from('profiles')
+        .upsert(updates, {
+          onConflict: 'id'
+        })
+
+    if (error) {
+      console.error(error)
+
+      alert(error.message)
+
+      setSaving(false)
+
+      return
+    }
 
     if (newPassword.trim()) {
-      await supabase.auth.updateUser({
-        password: newPassword
-      })
+      const {
+        error: passwordError
+      } =
+        await supabase.auth.updateUser(
+          {
+            password: newPassword
+          }
+        )
+
+      if (passwordError) {
+        alert(
+          passwordError.message
+        )
+      }
     }
 
     setSaving(false)
-
-    alert('Profile saved')
   }
 
   if (loading) {
@@ -144,7 +188,9 @@ export default function SettingsPage() {
                 )
               }
 
-              reader.readAsDataURL(file)
+              reader.readAsDataURL(
+                file
+              )
             }}
           />
 
@@ -195,48 +241,14 @@ export default function SettingsPage() {
       </div>
 
       <div className='card compactSettingsCard'>
-        <h2>Appearance</h2>
-
-        <div className='tierOptions settingsButtonGrid'>
-          <button className='tierButton active'>
-            light
-          </button>
-
-          <button className='tierButton'>
-            dark
-          </button>
-
-          <button className='tierButton'>
-            system
-          </button>
-        </div>
-      </div>
-
-      <div className='card compactSettingsCard'>
-        <h2>Default Spending</h2>
-
-        <div className='tierOptions settingsButtonGrid'>
-          <button className='tierButton'>
-            Saver
-          </button>
-
-          <button className='tierButton active'>
-            Standard
-          </button>
-
-          <button className='tierButton'>
-            Baller
-          </button>
-        </div>
-      </div>
-
-      <div className='card compactSettingsCard'>
-        <h2>Search Preferences</h2>
+        <h2>
+          Privacy
+        </h2>
 
         <div className='settingsStack'>
           <label className='cleanSettingRow'>
             <span>
-              Show similar dupes
+              Show email publicly
             </span>
 
             <input
@@ -252,7 +264,7 @@ export default function SettingsPage() {
 
           <label className='cleanSettingRow'>
             <span>
-              Include resale marketplaces
+              Show phone publicly
             </span>
 
             <input
@@ -269,7 +281,9 @@ export default function SettingsPage() {
       </div>
 
       <div className='card compactSettingsCard'>
-        <h2>Change Password</h2>
+        <h2>
+          Change Password
+        </h2>
 
         <div className='settingsStack'>
           <input
