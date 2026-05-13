@@ -163,26 +163,27 @@ export default function OnboardingFlow() {
 
         {step === 6 && <FinalStep />}
 
-        <button
-          type='button'
-          className='button'
-          onClick={isStepInvalid ? undefined : next}
-          disabled={loading || isStepInvalid}
-          style={{
-            opacity: loading || isStepInvalid ? 0.5 : 1,
-            background: loading || isStepInvalid ? '#bdbdbd' : '#000',
-            pointerEvents:
-              loading || isStepInvalid ? 'none' : 'auto',
-            transition: '0.2s'
-          }}
-        >
-          {loading
-            ? 'Creating account...'
-            : step === 6
-            ? 'Start Shopping'
-            : 'Continue'}
-        </button>
-
+      <button
+  type='button'
+  className='button'
+  onClick={() => {
+    if (!isStepInvalid) {
+      next()
+    }
+  }}
+  disabled={isStepInvalid || loading}
+  style={{
+    opacity: isStepInvalid || loading ? 0.5 : 1,
+    background: isStepInvalid || loading ? '#bdbdbd' : '#000',
+    cursor: isStepInvalid || loading ? 'not-allowed' : 'pointer'
+  }}
+>
+  {loading
+    ? 'Creating account...'
+    : step === 6
+    ? 'Start Shopping'
+    : 'Continue'}
+</button>
         {step === 1 && (
           <button
             type='button'
