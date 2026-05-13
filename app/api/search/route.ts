@@ -1,16 +1,3 @@
-Go to:
-
-app/api/search/route.ts
-
-Delete EVERYTHING and replace it with this cleaner fixed version that:
-
-* restores results
-* keeps fast parallel searching
-* keeps Saver cheaper
-* removes the broken over-filtering
-* improves fallback behavior
-* avoids “No results” dead ends
-
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 const BLOCKED_MARKETPLACES = [
