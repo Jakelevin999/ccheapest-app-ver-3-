@@ -29,64 +29,61 @@ const [loading, setLoading] = useState(false)
     password.trim()
 
   async function next() {
-   if (step === 1 && !signupComplete) {
-  return
-}
+  const canContinue =
+    step === 1
+      ? signupComplete
+      : step === 2
+      ? profileImage.trim() !== ''
+      : step === 3
+      ? gender.trim() !== ''
+      : step === 4
+      ? spending.trim() !== ''
+      : step === 5
+      ? selectedStyles.length > 0
+      : true
 
-if (step === 2 && !profileImage) {
-  return
-}
-
-if (step === 3 && !gender) {
-  return
-}
-
-if (step === 4 && !spending) {
-  return
-}
-
-if (step === 5 && selectedStyles.length === 0) {
-  return
-    }
-
-    if (step === 6) {
-  setLoading(true)
-
-  const { data, error } = await signUp(email, password)
-
-  if (error || !data.user) {
-    console.error(error)
-    setLoading(false)
+  if (!canContinue) {
     return
   }
 
-  localStorage.setItem('cheaperfind:onboardingComplete', 'true')
-  localStorage.setItem('cheaperfind:name', name)
-  localStorage.setItem('cheaperfind:email', email)
-  localStorage.setItem('cheaperfind:phone', phone)
+  if (step === 6) {
+    setLoading(true)
 
-  if (profileImage) {
-    localStorage.setItem('cheaperfind:profileImage', profileImage)
+    const { data, error } = await signUp(email, password)
+
+    if (error || !data.user) {
+      console.error(error)
+      setLoading(false)
+      return
+    }
+
+    localStorage.setItem('cheaperfind:onboardingComplete', 'true')
+    localStorage.setItem('cheaperfind:name', name)
+    localStorage.setItem('cheaperfind:email', email)
+    localStorage.setItem('cheaperfind:phone', phone)
+
+    if (profileImage) {
+      localStorage.setItem('cheaperfind:profileImage', profileImage)
+    }
+
+    await supabase.from('profiles').upsert({
+      id: data.user.id,
+      full_name: name,
+      email,
+      phone,
+      profile_image: profileImage,
+      gender,
+      spending_tier: spending,
+      style_preferences: selectedStyles,
+      onboarding_complete: true
+    })
+
+    window.location.href = '/'
+    return
   }
 
-  await supabase.from('profiles').upsert({
-    id: data.user.id,
-    full_name: name,
-    email,
-    phone,
-    profile_image: profileImage,
-    gender,
-    spending_tier: spending,
-    style_preferences: selectedStyles,
-    onboarding_complete: true
-  })
-
-  window.location.href = '/'
-  return
+  setStep(step + 1)
 }
-
-    setStep(step + 1)
-  }
 
   function toggleStyle(style:string) {
     setSelectedStyles(current =>
