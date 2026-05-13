@@ -39,3 +39,4 @@ Without keys, the app returns demo results so the UI still works.
 - Favorites are stored in `localStorage` for the MVP. For production, connect the same UI to Supabase using `docs/supabase-schema.sql`.
 
 <!-- deployment trigger after reset -->
+<!-- fresh deployment build trigger -->
