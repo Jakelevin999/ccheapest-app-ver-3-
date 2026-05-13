@@ -1,5 +1,3 @@
-Replace your ENTIRE app/settings/page.tsx with this:
-
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
