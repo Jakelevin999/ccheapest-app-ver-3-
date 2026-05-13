@@ -21,11 +21,15 @@ export default function OnboardingFlow() {
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
 
+  const signupComplete =
+    name.trim() &&
+    email.trim() &&
+    phone.trim() &&
+    password.trim()
+
   function next() {
-    if (step === 1) {
-      if (!name || !email || !phone || !password) {
-        return
-      }
+    if (step === 1 && !signupComplete) {
+      return
     }
 
     if (step === 6) {
@@ -72,7 +76,12 @@ export default function OnboardingFlow() {
         {step === 5 && <StylesStep selectedStyles={selectedStyles} toggleStyle={toggleStyle} />}
         {step === 6 && <FinalStep />}
 
-        <button className='button' onClick={next}>
+        <button
+          className='button'
+          onClick={next}
+          disabled={step === 1 && !signupComplete}
+          style={{opacity: step === 1 && !signupComplete ? 0.5 : 1}}
+        >
           {step === 6 ? 'Start Shopping' : 'Continue'}
         </button>
       </div>
