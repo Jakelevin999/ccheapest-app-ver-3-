@@ -26,7 +26,7 @@ const BLOCKED_STYLE_RESALE = [
 ];
 
 const OFFICIAL_RETAILERS =
-  /amazon|walmart|target|bestbuy|best buy|nike|adidas|apple|zara|uniqlo|asos|nordstrom|macys|gap|old navy|urban outfitters|stockx|goat|rei|costco|wayfair|gucci|neiman marcus|saks|bloomingdale|farfetch|ssense|net-a-porter|mr porter|prada|balenciaga|dior|louis vuitton|mytheresa|fwrd|revolve|matches|luisaviaroma|harrods|selfridges/i;
+  /amazon|walmart|target|bestbuy|nike|adidas|apple|zara|uniqlo|asos|nordstrom|macys|gap|old navy|urban outfitters|stockx|goat|rei|costco|wayfair|gucci|neiman marcus|saks|bloomingdale|farfetch|ssense|net-a-porter|mr porter|prada|balenciaga|dior|louis vuitton|mytheresa|fwrd|revolve|matches|luisaviaroma|harrods|selfridges/i;
 
 const BALLER_RETAILERS =
   /nordstrom|neiman marcus|saks|bloomingdale|farfetch|ssense|net-a-porter|mr porter|prada|balenciaga|dior|louis vuitton|matches|mytheresa|fwrd|revolve|luisaviaroma|harrods|selfridges|boutique|stockx|goat/i;
@@ -121,7 +121,13 @@ function extractRating(r:any) {
 }
 
 function passesRating(r:any) {
-  return extractRating(r) >= 4;
+  const rating =
+    extractRating(r);
+
+  if (!rating)
+    return true;
+
+  return rating >= 3.8;
 }
 
 function isAbsoluteUrl(link='') {
@@ -399,11 +405,7 @@ async function shoppingSearch(
       opts.seed
     );
 
-  const pageCount = 3;
-
-  const pages = [
-    1, 2, 3
-  ];
+  const pages = [1,2,3];
 
   const responses =
     await Promise.all(
