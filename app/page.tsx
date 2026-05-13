@@ -58,26 +58,25 @@ export default function Home() {
 
   useEffect(() => {
     async function loadProfile() {
-      const onboardingComplete = localStorage.getItem(
-        'cheaperfind:onboardingComplete'
-      );
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
 
-      if (!onboardingComplete) {
-        window.location.href = '/onboarding';
+      if (!user) {
+        router.replace('/login');
         return;
       }
+
+      localStorage.setItem(
+        'cheaperfind:onboardingComplete',
+        'true'
+      );
 
       const saved = localStorage.getItem(priceTierKey);
 
       if (saved && priceTiers.includes(saved)) {
         setPriceTier(saved);
       }
-
-      const {
-        data: { user }
-      } = await supabase.auth.getUser();
-
-      if (!user) return;
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -94,7 +93,7 @@ export default function Home() {
     }
 
     loadProfile();
-  }, []);
+  }, [router]);
 
   function toggleSpecial(name:string){
     setSpecialFilters(current =>
