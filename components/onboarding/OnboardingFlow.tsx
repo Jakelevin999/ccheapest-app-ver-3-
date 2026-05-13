@@ -13,27 +13,36 @@ import { supabase } from '../../lib/supabase'
 
 export default function OnboardingFlow() {
   const [step, setStep] = useState(0)
-  const [profileImage, setProfileImage] = useState('')
-  const [selectedStyles, setSelectedStyles] = useState<string[]>([])
-  const [spending, setSpending] = useState('')
-  const [gender, setGender] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+
+  const [profileImage, setProfileImage] = useState('')
+  const [gender, setGender] = useState('')
+  const [spending, setSpending] = useState('')
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([])
 
   const signupValid =
-    name.trim() !== '' &&
-    email.trim() !== '' &&
-    phone.trim() !== '' &&
-    password.trim() !== ''
+    name.trim().length > 0 &&
+    email.trim().length > 0 &&
+    phone.trim().length > 0 &&
+    password.trim().length > 0
 
-  const photoValid = profileImage.trim() !== ''
-  const genderValid = gender.trim() !== ''
-  const spendingValid = spending.trim() !== ''
+  const photoValid = profileImage.trim().length > 0
+  const genderValid = gender.trim().length > 0
+  const spendingValid = spending.trim().length > 0
   const stylesValid = selectedStyles.length > 0
+
+  function toggleStyle(style: string) {
+    setSelectedStyles(current =>
+      current.includes(style)
+        ? current.filter(x => x !== style)
+        : [...current, style]
+    )
+  }
 
   async function finishOnboarding() {
     if (loading) return
@@ -45,18 +54,10 @@ export default function OnboardingFlow() {
 
       if (error || !data?.user) {
         console.error(error)
+        alert('Signup failed')
         setLoading(false)
         return
       }
-
-      localStorage.setItem('cheaperfind:onboardingComplete', 'true')
-      localStorage.setItem('cheaperfind:name', name)
-      localStorage.setItem('cheaperfind:email', email)
-      localStorage.setItem('cheaperfind:phone', phone)
-      localStorage.setItem('cheaperfind:profileImage', profileImage)
-      localStorage.setItem('cheaperfind:gender', gender)
-      localStorage.setItem('cheaperfind:spending', spending)
-      localStorage.setItem('cheaperfind:selectedStyles', JSON.stringify(selectedStyles))
 
       await supabase.from('profiles').upsert({
         id: data.user.id,
@@ -70,6 +71,11 @@ export default function OnboardingFlow() {
         onboarding_complete: true
       })
 
+      localStorage.setItem(
+        'cheaperfind:onboardingComplete',
+        'true'
+      )
+
       window.location.href = '/'
     } catch (err) {
       console.error(err)
@@ -78,18 +84,36 @@ export default function OnboardingFlow() {
     }
   }
 
-  function toggleStyle(style: string) {
-    setSelectedStyles(current =>
-      current.includes(style)
-        ? current.filter(x => x !== style)
-        : [...current, style]
-    )
+  const disabledStyle = {
+    opacity: 0.45,
+    pointerEvents: 'none' as const,
+    background: '#bdbdbd'
   }
 
   return (
-    <div style={{position:'fixed',inset:0,width:'100vw',height:'100vh',background:'#f5f5f7',zIndex:999999,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',overflowY:'auto'}}>
-      <div style={{width:'100%',maxWidth:560,display:'grid',gap:22}}>
-
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        width: '100vw',
+        height: '100vh',
+        background: '#f5f5f7',
+        zIndex: 999999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+        overflowY: 'auto'
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 560,
+          display: 'grid',
+          gap: 22
+        }}
+      >
         {step === 0 && (
           <>
             <WelcomeStep />
@@ -117,15 +141,18 @@ export default function OnboardingFlow() {
               setPassword={setPassword}
             />
 
-            {signupValid && (
-              <button
-                type='button'
-                className='button'
-                onClick={() => setStep(2)}
-              >
-                Continue
-              </button>
-            )}
+            <button
+              type='button'
+              className='button'
+              disabled={!signupValid}
+              style={!signupValid ? disabledStyle : {}}
+              onClick={() => {
+                if (!signupValid) return
+                setStep(2)
+              }}
+            >
+              Continue
+            </button>
           </>
         )}
 
@@ -136,15 +163,18 @@ export default function OnboardingFlow() {
               setProfileImage={setProfileImage}
             />
 
-            {photoValid && (
-              <button
-                type='button'
-                className='button'
-                onClick={() => setStep(3)}
-              >
-                Continue
-              </button>
-            )}
+            <button
+              type='button'
+              className='button'
+              disabled={!photoValid}
+              style={!photoValid ? disabledStyle : {}}
+              onClick={() => {
+                if (!photoValid) return
+                setStep(3)
+              }}
+            >
+              Continue
+            </button>
           </>
         )}
 
@@ -155,15 +185,18 @@ export default function OnboardingFlow() {
               setGender={setGender}
             />
 
-            {genderValid && (
-              <button
-                type='button'
-                className='button'
-                onClick={() => setStep(4)}
-              >
-                Continue
-              </button>
-            )}
+            <button
+              type='button'
+              className='button'
+              disabled={!genderValid}
+              style={!genderValid ? disabledStyle : {}}
+              onClick={() => {
+                if (!genderValid) return
+                setStep(4)
+              }}
+            >
+              Continue
+            </button>
           </>
         )}
 
@@ -174,15 +207,18 @@ export default function OnboardingFlow() {
               setSpending={setSpending}
             />
 
-            {spendingValid && (
-              <button
-                type='button'
-                className='button'
-                onClick={() => setStep(5)}
-              >
-                Continue
-              </button>
-            )}
+            <button
+              type='button'
+              className='button'
+              disabled={!spendingValid}
+              style={!spendingValid ? disabledStyle : {}}
+              onClick={() => {
+                if (!spendingValid) return
+                setStep(5)
+              }}
+            >
+              Continue
+            </button>
           </>
         )}
 
@@ -193,15 +229,18 @@ export default function OnboardingFlow() {
               toggleStyle={toggleStyle}
             />
 
-            {stylesValid && (
-              <button
-                type='button'
-                className='button'
-                onClick={() => setStep(6)}
-              >
-                Continue
-              </button>
-            )}
+            <button
+              type='button'
+              className='button'
+              disabled={!stylesValid}
+              style={!stylesValid ? disabledStyle : {}}
+              onClick={() => {
+                if (!stylesValid) return
+                setStep(6)
+              }}
+            >
+              Continue
+            </button>
           </>
         )}
 
@@ -213,8 +252,11 @@ export default function OnboardingFlow() {
               type='button'
               className='button'
               onClick={finishOnboarding}
+              disabled={loading}
             >
-              {loading ? 'Creating account...' : 'Start Shopping'}
+              {loading
+                ? 'Creating account...'
+                : 'Start Shopping'}
             </button>
           </>
         )}
