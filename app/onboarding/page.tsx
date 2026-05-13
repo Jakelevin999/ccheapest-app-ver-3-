@@ -67,8 +67,29 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className='styleCenter' style={{minHeight:'100vh',padding:'24px'}}>
-      <div className='card' style={{maxWidth:560,width:'100%',display:'grid',gap:18}}>
+    <div style={{
+  position:'fixed',
+  inset:0,
+  width:'100vw',
+  height:'100vh',
+  background:'#f5f5f7',
+  zIndex:999999,
+  display:'flex',
+  alignItems:'center',
+  justifyContent:'center',
+  padding:'24px',
+  overflowY:'auto'
+}}>
+     <div style={{
+  width:'100%',
+  maxWidth:560,
+  display:'grid',
+  gap:22,
+  padding:0,
+  background:'transparent',
+  boxShadow:'none',
+  border:'none'
+}}>
         <div style={{display:'grid',gap:8}}>
           <div className='muted'>Step {step + 1} of {slides.length}</div>
           <h1 style={{fontSize:'clamp(36px,6vw,58px)',lineHeight:.95,margin:0}}>{slide.title}</h1>
@@ -143,5 +164,3 @@ export default function OnboardingPage() {
     </div>
   )
 }
-nigga nigga nigga d that monkey
-
