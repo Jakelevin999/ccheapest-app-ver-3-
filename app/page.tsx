@@ -89,7 +89,12 @@ export default function Home() {
       setProfileName(profile.full_name || '');
       setProfileEmail(profile.email || '');
       setProfilePhone(profile.phone || '');
-      setProfileImage(profile.profile_image || '');
+
+      setProfileImage(
+        profile.profile_image ||
+        profile.avatar_url ||
+        ''
+      );
     }
 
     loadProfile();
@@ -175,6 +180,16 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      <h1
+        style={{
+          width: '100%',
+          textAlign: 'left',
+          marginBottom: 10
+        }}
+      >
+        Shop
+      </h1>
 
       <div className="card searchBox shopCard">
         <input
