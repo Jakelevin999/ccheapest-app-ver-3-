@@ -24,19 +24,8 @@ export default function OnboardingFlow() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const isStepInvalid =
-    (step === 1 &&
-      (!name.trim() ||
-        !email.trim() ||
-        !phone.trim() ||
-        !password.trim())) ||
-    (step === 2 && !profileImage.trim()) ||
-    (step === 3 && !gender.trim()) ||
-    (step === 4 && !spending.trim()) ||
-    (step === 5 && selectedStyles.length === 0)
-
   async function next() {
-    if (isStepInvalid || loading) return
+    if (loading) return
 
     if (step === 6) {
       try {
@@ -92,29 +81,8 @@ export default function OnboardingFlow() {
   }
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        width: '100vw',
-        height: '100vh',
-        background: '#f5f5f7',
-        zIndex: 999999,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        overflowY: 'auto'
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 560,
-          display: 'grid',
-          gap: 22
-        }}
-      >
+    <div style={{position:'fixed',inset:0,width:'100vw',height:'100vh',background:'#f5f5f7',zIndex:999999,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',overflowY:'auto'}}>
+      <div style={{width:'100%',maxWidth:560,display:'grid',gap:22}}>
         {step === 0 && <WelcomeStep />}
 
         {step === 1 && (
@@ -160,17 +128,45 @@ export default function OnboardingFlow() {
 
         {step === 6 && <FinalStep />}
 
-        {(step === 0 || !isStepInvalid) && (
-          <button
-            type='button'
-            className='button'
-            onClick={next}
-          >
-            {loading
-              ? 'Creating account...'
-              : step === 6
-              ? 'Start Shopping'
-              : 'Continue'}
+        {step === 0 && (
+          <button type='button' className='button' onClick={next}>
+            Continue
+          </button>
+        )}
+
+        {step === 1 && name && email && phone && password && (
+          <button type='button' className='button' onClick={next}>
+            Continue
+          </button>
+        )}
+
+        {step === 2 && profileImage && (
+          <button type='button' className='button' onClick={next}>
+            Continue
+          </button>
+        )}
+
+        {step === 3 && gender && (
+          <button type='button' className='button' onClick={next}>
+            Continue
+          </button>
+        )}
+
+        {step === 4 && spending && (
+          <button type='button' className='button' onClick={next}>
+            Continue
+          </button>
+        )}
+
+        {step === 5 && selectedStyles.length > 0 && (
+          <button type='button' className='button' onClick={next}>
+            Continue
+          </button>
+        )}
+
+        {step === 6 && (
+          <button type='button' className='button' onClick={next}>
+            {loading ? 'Creating account...' : 'Start Shopping'}
           </button>
         )}
 
