@@ -1,5 +1,3 @@
-Replace your ENTIRE components/AppShell.tsx with this:
-
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
