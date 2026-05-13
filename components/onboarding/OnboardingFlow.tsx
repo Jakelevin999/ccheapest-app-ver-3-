@@ -9,7 +9,7 @@ import SpendingStep from './SpendingStep'
 import StylesStep from './StylesStep'
 import FinalStep from './FinalStep'
 import { signUp } from '../../lib/auth'
-import { supabase } from '../../lib/supabase'x
+import { supabase } from '../../lib/supabase'
 export default function OnboardingFlow() {
   const [step, setStep] = useState(0)
   const [profileImage, setProfileImage] = useState('')
