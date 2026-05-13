@@ -41,8 +41,18 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
+    const onboardingComplete = localStorage.getItem('cheaperfind:onboardingComplete');
+
+    if (!onboardingComplete) {
+      window.location.href = '/onboarding';
+      return;
+    }
+
     const saved = localStorage.getItem(priceTierKey);
-    if (saved && priceTiers.includes(saved)) setPriceTier(saved);
+
+    if (saved && priceTiers.includes(saved)) {
+      setPriceTier(saved);
+    }
   }, []);
 
   function toggleSpecial(name:string){
