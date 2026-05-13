@@ -29,8 +29,24 @@ const [loading, setLoading] = useState(false)
     password.trim()
 
   async function next() {
-    if (step === 1 && !signupComplete) {
-      return
+   if (step === 1 && !signupComplete) {
+  return
+}
+
+if (step === 2 && !profileImage) {
+  return
+}
+
+if (step === 3 && !gender) {
+  return
+}
+
+if (step === 4 && !spending) {
+  return
+}
+
+if (step === 5 && selectedStyles.length === 0) {
+  return
     }
 
     if (step === 6) {
@@ -107,7 +123,14 @@ const [loading, setLoading] = useState(false)
         <button
   className='button'
   onClick={next}
-  disabled={loading || (step === 1 && !signupComplete)}
+  disabled={
+  loading ||
+  (step === 1 && !signupComplete) ||
+  (step === 2 && !profileImage) ||
+  (step === 3 && !gender) ||
+  (step === 4 && !spending) ||
+  (step === 5 && selectedStyles.length === 0)
+}
   style={{
     opacity:
       loading || (step === 1 && !signupComplete)
