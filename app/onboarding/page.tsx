@@ -50,7 +50,13 @@ export default function OnboardingPage() {
   const [gender, setGender] = useState('Mens')
 
   function next(){
-    if(step < slides.length - 1) setStep(step + 1)
+    if(step === slides.length - 1){
+      localStorage.setItem('cheaperfind:onboardingComplete','true')
+      window.location.href = '/'
+      return
+    }
+
+    setStep(step + 1)
   }
 
   function toggleStyle(style:string){
@@ -90,6 +96,7 @@ export default function OnboardingPage() {
             {['Mens','Womens','Unisex'].map(item => (
               <button
                 key={item}
+                type='button'
                 className={gender === item ? 'tierButton active' : 'tierButton'}
                 onClick={() => setGender(item)}
               >
@@ -104,6 +111,7 @@ export default function OnboardingPage() {
             {['Saver','Standard','Baller'].map(item => (
               <button
                 key={item}
+                type='button'
                 className={spending === item ? 'tierButton active' : 'tierButton'}
                 onClick={() => setSpending(item)}
               >
@@ -118,6 +126,7 @@ export default function OnboardingPage() {
             {styles.map(style => (
               <button
                 key={style}
+                type='button'
                 className={selectedStyles.includes(style) ? 'filter active' : 'filter'}
                 onClick={() => toggleStyle(style)}
               >
