@@ -131,17 +131,33 @@ export default function OnboardingPage() {
   }}
 >
         {step === 0 && (
-          <>
-            <h1 style={titleStyle}>Welcome to CheaperFind</h1>
+  <>
+    <h1 style={titleStyle}>Welcome to CheaperFind</h1>
 
-            <button
-              style={buttonStyle}
-              onClick={() => setStep(1)}
-            >
-              Continue
-            </button>
-          </>
-        )}
+    <button
+      style={buttonStyle}
+      onClick={() => setStep(1)}
+    >
+      Continue
+    </button>
+
+    <button
+      style={{
+        background: 'transparent',
+        border: 'none',
+        color: '#666',
+        fontSize: '15px',
+        cursor: 'pointer',
+        marginTop: '-6px'
+      }}
+      onClick={() => {
+        window.location.href = '/login'
+      }}
+    >
+      Already have an account? Login
+    </button>
+  </>
+)}
 
         {step === 1 && (
           <>
