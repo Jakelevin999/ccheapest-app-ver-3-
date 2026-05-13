@@ -134,7 +134,7 @@ if (step === 5 && selectedStyles.length === 0) return
     opacity:
       loading || (step === 1 && !signupComplete)
         ? 0.5
-        : 1
+        : 1,
     pointerEvents:
   loading ||
   (step === 1 && !signupComplete) ||
