@@ -166,7 +166,7 @@ export default function OnboardingFlow() {
         <button
           type='button'
           className='button'
-          onClick={next}
+          onClick={isStepInvalid ? undefined : next}
           disabled={loading || isStepInvalid}
           style={{
             opacity: loading || isStepInvalid ? 0.5 : 1,
