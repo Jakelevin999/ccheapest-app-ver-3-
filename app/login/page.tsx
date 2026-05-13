@@ -38,7 +38,7 @@ export default function LoginPage() {
     .eq('id', user.id)
     .single()
 
-  if (profile?.onboarding_complete) {
+  if (user) {
     localStorage.setItem(
       'cheaperfind:onboardingComplete',
       'true'
