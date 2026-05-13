@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn } from '../../lib/auth'
 import { supabase } from '../../lib/supabase'
 import { supabase } from '../lib/supabase'
@@ -10,7 +10,36 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [profileName, setProfileName] = useState('')
+const [profileEmail, setProfileEmail] = useState('')
+const [profilePhone, setProfilePhone] = useState('')
+const [profileImage, setProfileImage] = useState('')
 
+useEffect(() => {
+  async function loadProfile() {
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
+
+    if (!user) return
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile) return
+
+    setProfileName(profile.full_name || '')
+    setProfileEmail(profile.email || '')
+    setProfilePhone(profile.phone || '')
+    setProfileImage(profile.profile_image || '')
+  }
+
+  loadProfile()
+}, [])
+  
   async function handleLogin() {
   setLoading(true)
   setError('')
