@@ -1,4 +1,4 @@
-'use client'
+Z'use client'
 
 import { useState } from 'react'
 import WelcomeStep from './WelcomeStep'
@@ -126,17 +126,15 @@ if (step === 3 && gender.trim() === '') return
 if (step === 4 && spending.trim() === '') return
 if (step === 5 && selectedStyles.length === 0) return
 
-        <button
+      <button
   className='button'
   onClick={next}
- disabled={loading || style={{
-  opacity: loading || isStepInvalid ? 0.5 : 1,
-  pointerEvents: loading || isStepInvalid ? 'none' : 'auto',
-  background:
-    loading || isStepInvalid
-      ? '#bdbdbd'
-      : '#000',
-  transition: '0.2s'
+  disabled={loading || isStepInvalid}
+  style={{
+    opacity: loading || isStepInvalid ? 0.5 : 1,
+    pointerEvents: loading || isStepInvalid ? 'none' : 'auto',
+    background: loading || isStepInvalid ? '#bdbdbd' : '#000',
+    transition: '0.2s'
   }}
 >
   {loading
