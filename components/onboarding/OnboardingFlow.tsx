@@ -128,47 +128,83 @@ export default function OnboardingFlow() {
 
         {step === 6 && <FinalStep />}
 
-        {step === 0 && (
-          <button type='button' className='button' onClick={next}>
-            Continue
-          </button>
-        )}
+      {step === 0 && (
+  <button
+    type='button'
+    className='button'
+    onClick={() => setStep(1)}
+  >
+    Continue
+  </button>
+)}
 
-        {step === 1 && name && email && phone && password && (
-          <button type='button' className='button' onClick={next}>
-            Continue
-          </button>
-        )}
+{step === 1 &&
+  name.trim() &&
+  email.trim() &&
+  phone.trim() &&
+  password.trim() ? (
+    <button
+      type='button'
+      className='button'
+      onClick={() => setStep(2)}
+    >
+      Continue
+    </button>
+  ) : null}
 
-        {step === 2 && profileImage && (
-          <button type='button' className='button' onClick={next}>
-            Continue
-          </button>
-        )}
+{step === 2 &&
+  profileImage.trim() ? (
+    <button
+      type='button'
+      className='button'
+      onClick={() => setStep(3)}
+    >
+      Continue
+    </button>
+  ) : null}
 
-        {step === 3 && gender && (
-          <button type='button' className='button' onClick={next}>
-            Continue
-          </button>
-        )}
+{step === 3 &&
+  gender.trim() ? (
+    <button
+      type='button'
+      className='button'
+      onClick={() => setStep(4)}
+    >
+      Continue
+    </button>
+  ) : null}
 
-        {step === 4 && spending && (
-          <button type='button' className='button' onClick={next}>
-            Continue
-          </button>
-        )}
+{step === 4 &&
+  spending.trim() ? (
+    <button
+      type='button'
+      className='button'
+      onClick={() => setStep(5)}
+    >
+      Continue
+    </button>
+  ) : null}
 
-        {step === 5 && selectedStyles.length > 0 && (
-          <button type='button' className='button' onClick={next}>
-            Continue
-          </button>
-        )}
+{step === 5 &&
+  selectedStyles.length > 0 ? (
+    <button
+      type='button'
+      className='button'
+      onClick={() => setStep(6)}
+    >
+      Continue
+    </button>
+  ) : null}
 
-        {step === 6 && (
-          <button type='button' className='button' onClick={next}>
-            {loading ? 'Creating account...' : 'Start Shopping'}
-          </button>
-        )}
+{step === 6 && (
+  <button
+    type='button'
+    className='button'
+    onClick={finishOnboarding}
+  >
+    {loading ? 'Creating account...' : 'Start Shopping'}
+  </button>
+)}
 
         {step === 1 && (
           <button
