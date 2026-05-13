@@ -63,7 +63,7 @@ export default function Home() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        router.replace('/login');
+        router.replace('/onboarding');
         return;
       }
 
@@ -164,9 +164,7 @@ export default function Home() {
         )}
 
         <div>
-          <h1 style={{ margin: 0 }}>
-            Welcome back{profileName ? `, ${profileName}` : ''}
-          </h1>
+          <div style={{ height: 8 }} />
 
           <div style={{ opacity: 0.7, fontSize: 14 }}>
             {profileEmail}
