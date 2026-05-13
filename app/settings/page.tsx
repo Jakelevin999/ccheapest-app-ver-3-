@@ -36,31 +36,39 @@ export default function SettingsPage() {
         .eq('id', user.id)
         .single()
 
-      if (profile) {
-        setProfileName(
-          profile.full_name ||
-            profile.username ||
-            ''
-        )
+      setProfileName(
+        profile?.full_name ||
+          profile?.username ||
+          user.user_metadata?.full_name ||
+          ''
+      )
 
-        setProfileEmail(profile.email || '')
+      setProfileEmail(
+        profile?.email ||
+          user.email ||
+          ''
+      )
 
-        setProfilePhone(profile.phone || '')
+      setProfilePhone(
+        profile?.phone ||
+          user.phone ||
+          user.user_metadata?.phone ||
+          ''
+      )
 
-        setProfileImage(
-          profile.profile_image ||
-            profile.avatar_url ||
-            ''
-        )
+      setProfileImage(
+        profile?.profile_image ||
+          profile?.avatar_url ||
+          ''
+      )
 
-        setShowEmail(
-          profile.show_email ?? true
-        )
+      setShowEmail(
+        profile?.show_email ?? true
+      )
 
-        setShowPhone(
-          profile.show_phone ?? false
-        )
-      }
+      setShowPhone(
+        profile?.show_phone ?? false
+      )
 
       setLoading(false)
     }
@@ -115,128 +123,42 @@ export default function SettingsPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: '#0a0a0a',
-        color: '#fff',
-        padding: '24px'
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 700,
-          margin: '0 auto',
-          display: 'grid',
-          gap: 24
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 20
-          }}
-        >
-          <label
-            style={{
-              position: 'relative',
-              cursor: 'pointer'
+    <section className='smallSettings'>
+      <div className='card compactSettingsCard'>
+        <label className='cleanProfileUpload'>
+          <input
+            type='file'
+            accept='image/*'
+            onChange={(e) => {
+              const file =
+                e.target.files?.[0]
+
+              if (!file) return
+
+              const reader =
+                new FileReader()
+
+              reader.onloadend = () => {
+                setProfileImage(
+                  reader.result as string
+                )
+              }
+
+              reader.readAsDataURL(file)
             }}
-          >
-            <input
-              type='file'
-              accept='image/*'
-              style={{ display: 'none' }}
-              onChange={(e) => {
-                const file =
-                  e.target.files?.[0]
+          />
 
-                if (!file) return
-
-                const reader =
-                  new FileReader()
-
-                reader.onloadend = () => {
-                  setProfileImage(
-                    reader.result as string
-                  )
-                }
-
-                reader.readAsDataURL(file)
-              }}
+          {profileImage ? (
+            <img
+              src={profileImage}
+              alt='profile'
             />
+          ) : (
+            <span>👤</span>
+          )}
+        </label>
 
-            <div
-              style={{
-                width: 110,
-                height: 110,
-                borderRadius: '999px',
-                overflow: 'hidden',
-                background: '#222',
-                border:
-                  '3px solid rgba(255,255,255,0.12)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              {profileImage ? (
-                <img
-                  src={profileImage}
-                  alt='profile'
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover'
-                  }}
-                />
-              ) : (
-                <span
-                  style={{
-                    fontSize: 13,
-                    opacity: 0.7
-                  }}
-                >
-                  Add Photo
-                </span>
-              )}
-            </div>
-          </label>
-
-          <div>
-            <h1
-              style={{
-                margin: 0,
-                fontSize: 42,
-                fontWeight: 800
-              }}
-            >
-              Settings
-            </h1>
-
-            <div
-              style={{
-                opacity: 0.65,
-                marginTop: 6
-              }}
-            >
-              Manage your account
-            </div>
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: '#141414',
-            borderRadius: 28,
-            padding: 24,
-            display: 'grid',
-            gap: 18,
-            border:
-              '1px solid rgba(255,255,255,0.08)'
-          }}
-        >
+        <div className='settingsStack'>
           <input
             className='input'
             placeholder='Full Name'
@@ -269,57 +191,87 @@ export default function SettingsPage() {
               )
             }
           />
+        </div>
+      </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gap: 14,
-              marginTop: 4
-            }}
-          >
-            <label
-              style={{
-                display: 'flex',
-                justifyContent:
-                  'space-between',
-                alignItems: 'center'
-              }}
-            >
-              Show email publicly
+      <div className='card compactSettingsCard'>
+        <h2>Appearance</h2>
 
-              <input
-                type='checkbox'
-                checked={showEmail}
-                onChange={(e) =>
-                  setShowEmail(
-                    e.target.checked
-                  )
-                }
-              />
-            </label>
+        <div className='tierOptions settingsButtonGrid'>
+          <button className='tierButton active'>
+            light
+          </button>
 
-            <label
-              style={{
-                display: 'flex',
-                justifyContent:
-                  'space-between',
-                alignItems: 'center'
-              }}
-            >
-              Show phone publicly
+          <button className='tierButton'>
+            dark
+          </button>
 
-              <input
-                type='checkbox'
-                checked={showPhone}
-                onChange={(e) =>
-                  setShowPhone(
-                    e.target.checked
-                  )
-                }
-              />
-            </label>
-          </div>
+          <button className='tierButton'>
+            system
+          </button>
+        </div>
+      </div>
 
+      <div className='card compactSettingsCard'>
+        <h2>Default Spending</h2>
+
+        <div className='tierOptions settingsButtonGrid'>
+          <button className='tierButton'>
+            Saver
+          </button>
+
+          <button className='tierButton active'>
+            Standard
+          </button>
+
+          <button className='tierButton'>
+            Baller
+          </button>
+        </div>
+      </div>
+
+      <div className='card compactSettingsCard'>
+        <h2>Search Preferences</h2>
+
+        <div className='settingsStack'>
+          <label className='cleanSettingRow'>
+            <span>
+              Show similar dupes
+            </span>
+
+            <input
+              type='checkbox'
+              checked={showEmail}
+              onChange={(e) =>
+                setShowEmail(
+                  e.target.checked
+                )
+              }
+            />
+          </label>
+
+          <label className='cleanSettingRow'>
+            <span>
+              Include resale marketplaces
+            </span>
+
+            <input
+              type='checkbox'
+              checked={showPhone}
+              onChange={(e) =>
+                setShowPhone(
+                  e.target.checked
+                )
+              }
+            />
+          </label>
+        </div>
+      </div>
+
+      <div className='card compactSettingsCard'>
+        <h2>Change Password</h2>
+
+        <div className='settingsStack'>
           <input
             className='input'
             type='password'
@@ -331,18 +283,18 @@ export default function SettingsPage() {
               )
             }
           />
-
-          <button
-            className='button'
-            onClick={saveProfile}
-            disabled={saving}
-          >
-            {saving
-              ? 'Saving...'
-              : 'Save Changes'}
-          </button>
         </div>
       </div>
-    </div>
+
+      <button
+        className='button'
+        onClick={saveProfile}
+        disabled={saving}
+      >
+        {saving
+          ? 'Saving...'
+          : 'Save Changes'}
+      </button>
+    </section>
   )
 }
