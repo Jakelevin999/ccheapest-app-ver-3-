@@ -1,16 +1,10 @@
 'use client'
 
-import WelcomeStep from '../../components/onboarding/WelcomeStep'
-import SignupStep from '../../components/onboarding/SignupStep'
-import PhotoStep from '../../components/onboarding/PhotoStep'
-import GenderStep from '../../components/onboarding/GenderStep'
-import SpendingStep from '../../components/onboarding/SpendingStep'
-import StylesStep from '../../components/onboarding/StylesStep'
-import FinalStep from '../../components/onboarding/FinalStep'
+import { useState } from 'react'
 import { signUp } from '../../lib/auth'
 import { supabase } from '../../lib/supabase'
 
-export default function OnboardingFlow() {
+export default function OnboardingPage() {
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
 
@@ -25,14 +19,14 @@ export default function OnboardingFlow() {
   const [selectedStyles, setSelectedStyles] = useState<string[]>([])
 
   const signupValid =
-    name.trim().length > 0 &&
-    email.trim().length > 0 &&
-    phone.trim().length > 0 &&
-    password.trim().length > 0
+    name.trim() &&
+    email.trim() &&
+    phone.trim() &&
+    password.trim()
 
-  const photoValid = profileImage.trim().length > 0
-  const genderValid = gender.trim().length > 0
-  const spendingValid = spending.trim().length > 0
+  const photoValid = profileImage.trim()
+  const genderValid = gender.trim()
+  const spendingValid = spending.trim()
   const stylesValid = selectedStyles.length > 0
 
   function toggleStyle(style: string) {
@@ -52,9 +46,7 @@ export default function OnboardingFlow() {
       const { data, error } = await signUp(email, password)
 
       if (error || !data?.user) {
-        console.error(error)
         alert('Signup failed')
-        setLoading(false)
         return
       }
 
@@ -76,49 +68,35 @@ export default function OnboardingFlow() {
       )
 
       window.location.href = '/'
-    } catch (err) {
-      console.error(err)
     } finally {
       setLoading(false)
     }
   }
 
-  const disabledStyle = {
-    opacity: 0.45,
-    pointerEvents: 'none' as const,
-    background: '#bdbdbd'
-  }
-
   return (
     <div
       style={{
-        position: 'fixed',
-        inset: 0,
-        width: '100vw',
-        height: '100vh',
-        background: '#f5f5f7',
-        zIndex: 999999,
+        minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '24px',
-        overflowY: 'auto'
+        padding: 24,
+        background: '#f5f5f7'
       }}
     >
       <div
         style={{
           width: '100%',
-          maxWidth: 560,
+          maxWidth: 500,
           display: 'grid',
-          gap: 22
+          gap: 18
         }}
       >
         {step === 0 && (
           <>
-            <WelcomeStep />
+            <h1>Welcome to CheaperFind</h1>
 
             <button
-              type='button'
               className='button'
               onClick={() => setStep(1)}
             >
@@ -129,25 +107,47 @@ export default function OnboardingFlow() {
 
         {step === 1 && (
           <>
-            <SignupStep
-              name={name}
-              setName={setName}
-              email={email}
-              setEmail={setEmail}
-              phone={phone}
-              setPhone={setPhone}
-              password={password}
-              setPassword={setPassword}
+            <h1>Create Account</h1>
+
+            <input
+              className='input'
+              placeholder='Full name'
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+
+            <input
+              className='input'
+              placeholder='Email'
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+
+            <input
+              className='input'
+              placeholder='Phone'
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+
+            <input
+              className='input'
+              type='password'
+              placeholder='Password'
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
 
             <button
-              type='button'
               className='button'
               disabled={!signupValid}
-              style={!signupValid ? disabledStyle : {}}
               onClick={() => {
                 if (!signupValid) return
                 setStep(2)
+              }}
+              style={{
+                opacity: signupValid ? 1 : 0.4,
+                pointerEvents: signupValid ? 'auto' : 'none'
               }}
             >
               Continue
@@ -157,19 +157,49 @@ export default function OnboardingFlow() {
 
         {step === 2 && (
           <>
-            <PhotoStep
-              profileImage={profileImage}
-              setProfileImage={setProfileImage}
+            <h1>Add Profile Photo</h1>
+
+            <input
+              type='file'
+              accept='image/*'
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+
+                if (!file) return
+
+                const reader = new FileReader()
+
+                reader.onloadend = () => {
+                  setProfileImage(reader.result as string)
+                }
+
+                reader.readAsDataURL(file)
+              }}
             />
 
+            {profileImage && (
+              <img
+                src={profileImage}
+                alt='profile'
+                style={{
+                  width: 120,
+                  height: 120,
+                  borderRadius: '999px',
+                  objectFit: 'cover'
+                }}
+              />
+            )}
+
             <button
-              type='button'
               className='button'
               disabled={!photoValid}
-              style={!photoValid ? disabledStyle : {}}
               onClick={() => {
                 if (!photoValid) return
                 setStep(3)
+              }}
+              style={{
+                opacity: photoValid ? 1 : 0.4,
+                pointerEvents: photoValid ? 'auto' : 'none'
               }}
             >
               Continue
@@ -179,19 +209,28 @@ export default function OnboardingFlow() {
 
         {step === 3 && (
           <>
-            <GenderStep
-              gender={gender}
-              setGender={setGender}
-            />
+            <h1>Select Gender</h1>
+
+            {['Mens', 'Womens', 'Unisex'].map(item => (
+              <button
+                key={item}
+                className='button'
+                onClick={() => setGender(item)}
+              >
+                {item}
+              </button>
+            ))}
 
             <button
-              type='button'
               className='button'
               disabled={!genderValid}
-              style={!genderValid ? disabledStyle : {}}
               onClick={() => {
                 if (!genderValid) return
                 setStep(4)
+              }}
+              style={{
+                opacity: genderValid ? 1 : 0.4,
+                pointerEvents: genderValid ? 'auto' : 'none'
               }}
             >
               Continue
@@ -201,19 +240,28 @@ export default function OnboardingFlow() {
 
         {step === 4 && (
           <>
-            <SpendingStep
-              spending={spending}
-              setSpending={setSpending}
-            />
+            <h1>Select Spending Tier</h1>
+
+            {['Saver', 'Standard', 'Baller'].map(item => (
+              <button
+                key={item}
+                className='button'
+                onClick={() => setSpending(item)}
+              >
+                {item}
+              </button>
+            ))}
 
             <button
-              type='button'
               className='button'
               disabled={!spendingValid}
-              style={!spendingValid ? disabledStyle : {}}
               onClick={() => {
                 if (!spendingValid) return
                 setStep(5)
+              }}
+              style={{
+                opacity: spendingValid ? 1 : 0.4,
+                pointerEvents: spendingValid ? 'auto' : 'none'
               }}
             >
               Continue
@@ -223,19 +271,33 @@ export default function OnboardingFlow() {
 
         {step === 5 && (
           <>
-            <StylesStep
-              selectedStyles={selectedStyles}
-              toggleStyle={toggleStyle}
-            />
+            <h1>Select Styles</h1>
+
+            {[
+              'Streetwear',
+              'Minimal',
+              'Luxury',
+              'Vintage'
+            ].map(style => (
+              <button
+                key={style}
+                className='button'
+                onClick={() => toggleStyle(style)}
+              >
+                {style}
+              </button>
+            ))}
 
             <button
-              type='button'
               className='button'
               disabled={!stylesValid}
-              style={!stylesValid ? disabledStyle : {}}
               onClick={() => {
                 if (!stylesValid) return
                 setStep(6)
+              }}
+              style={{
+                opacity: stylesValid ? 1 : 0.4,
+                pointerEvents: stylesValid ? 'auto' : 'none'
               }}
             >
               Continue
@@ -245,10 +307,9 @@ export default function OnboardingFlow() {
 
         {step === 6 && (
           <>
-            <FinalStep />
+            <h1>Finish</h1>
 
             <button
-              type='button'
               className='button'
               onClick={finishOnboarding}
               disabled={loading}
