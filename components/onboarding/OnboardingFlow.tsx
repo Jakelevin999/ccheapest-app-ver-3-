@@ -9,8 +9,7 @@ import SpendingStep from './SpendingStep'
 import StylesStep from './StylesStep'
 import FinalStep from './FinalStep'
 import { signUp } from '../../lib/auth'
-import { supabase } from '../../lib/supabase'
-const [loading, setLoading] = useState(false)
+import { supabase } from '../../lib/supabase'x
 export default function OnboardingFlow() {
   const [step, setStep] = useState(0)
   const [profileImage, setProfileImage] = useState('')
@@ -69,7 +68,6 @@ const [loading, setLoading] = useState(false)
   window.location.href = '/'
   return
 }
-    }
 
     setStep(step + 1)
   }
