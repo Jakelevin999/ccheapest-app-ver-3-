@@ -24,52 +24,58 @@ export default function OnboardingFlow() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
- async function finishOnboarding() {
+  const signupValid =
+    name.trim() !== '' &&
+    email.trim() !== '' &&
+    phone.trim() !== '' &&
+    password.trim() !== ''
+
+  const photoValid = profileImage.trim() !== ''
+  const genderValid = gender.trim() !== ''
+  const spendingValid = spending.trim() !== ''
+  const stylesValid = selectedStyles.length > 0
+
+  async function finishOnboarding() {
     if (loading) return
 
-    if (step === 6) {
-      try {
-        setLoading(true)
+    try {
+      setLoading(true)
 
-        const { data, error } = await signUp(email, password)
+      const { data, error } = await signUp(email, password)
 
-        if (error || !data?.user) {
-          console.error(error)
-          setLoading(false)
-          return
-        }
-
-        localStorage.setItem('cheaperfind:onboardingComplete', 'true')
-        localStorage.setItem('cheaperfind:name', name)
-        localStorage.setItem('cheaperfind:email', email)
-        localStorage.setItem('cheaperfind:phone', phone)
-        localStorage.setItem('cheaperfind:profileImage', profileImage)
-        localStorage.setItem('cheaperfind:gender', gender)
-        localStorage.setItem('cheaperfind:spending', spending)
-        localStorage.setItem('cheaperfind:selectedStyles', JSON.stringify(selectedStyles))
-
-        await supabase.from('profiles').upsert({
-          id: data.user.id,
-          full_name: name,
-          email,
-          phone,
-          profile_image: profileImage,
-          gender,
-          spending_tier: spending,
-          style_preferences: selectedStyles,
-          onboarding_complete: true
-        })
-
-        window.location.href = '/'
-        return
-      } catch (err) {
-        console.error(err)
-      } finally {
+      if (error || !data?.user) {
+        console.error(error)
         setLoading(false)
+        return
       }
-    }
 
-    setStep(step + 1)
+      localStorage.setItem('cheaperfind:onboardingComplete', 'true')
+      localStorage.setItem('cheaperfind:name', name)
+      localStorage.setItem('cheaperfind:email', email)
+      localStorage.setItem('cheaperfind:phone', phone)
+      localStorage.setItem('cheaperfind:profileImage', profileImage)
+      localStorage.setItem('cheaperfind:gender', gender)
+      localStorage.setItem('cheaperfind:spending', spending)
+      localStorage.setItem('cheaperfind:selectedStyles', JSON.stringify(selectedStyles))
+
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        full_name: name,
+        email,
+        phone,
+        profile_image: profileImage,
+        gender,
+        spending_tier: spending,
+        style_preferences: selectedStyles,
+        onboarding_complete: true
+      })
+
+      window.location.href = '/'
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   function toggleStyle(style: string) {
@@ -83,139 +89,134 @@ export default function OnboardingFlow() {
   return (
     <div style={{position:'fixed',inset:0,width:'100vw',height:'100vh',background:'#f5f5f7',zIndex:999999,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',overflowY:'auto'}}>
       <div style={{width:'100%',maxWidth:560,display:'grid',gap:22}}>
-        {step === 0 && <WelcomeStep />}
+
+        {step === 0 && (
+          <>
+            <WelcomeStep />
+
+            <button
+              type='button'
+              className='button'
+              onClick={() => setStep(1)}
+            >
+              Continue
+            </button>
+          </>
+        )}
 
         {step === 1 && (
-          <SignupStep
-            name={name}
-            setName={setName}
-            email={email}
-            setEmail={setEmail}
-            phone={phone}
-            setPhone={setPhone}
-            password={password}
-            setPassword={setPassword}
-          />
+          <>
+            <SignupStep
+              name={name}
+              setName={setName}
+              email={email}
+              setEmail={setEmail}
+              phone={phone}
+              setPhone={setPhone}
+              password={password}
+              setPassword={setPassword}
+            />
+
+            {signupValid && (
+              <button
+                type='button'
+                className='button'
+                onClick={() => setStep(2)}
+              >
+                Continue
+              </button>
+            )}
+          </>
         )}
 
         {step === 2 && (
-          <PhotoStep
-            profileImage={profileImage}
-            setProfileImage={setProfileImage}
-          />
+          <>
+            <PhotoStep
+              profileImage={profileImage}
+              setProfileImage={setProfileImage}
+            />
+
+            {photoValid && (
+              <button
+                type='button'
+                className='button'
+                onClick={() => setStep(3)}
+              >
+                Continue
+              </button>
+            )}
+          </>
         )}
 
         {step === 3 && (
-          <GenderStep
-            gender={gender}
-            setGender={setGender}
-          />
+          <>
+            <GenderStep
+              gender={gender}
+              setGender={setGender}
+            />
+
+            {genderValid && (
+              <button
+                type='button'
+                className='button'
+                onClick={() => setStep(4)}
+              >
+                Continue
+              </button>
+            )}
+          </>
         )}
 
         {step === 4 && (
-          <SpendingStep
-            spending={spending}
-            setSpending={setSpending}
-          />
+          <>
+            <SpendingStep
+              spending={spending}
+              setSpending={setSpending}
+            />
+
+            {spendingValid && (
+              <button
+                type='button'
+                className='button'
+                onClick={() => setStep(5)}
+              >
+                Continue
+              </button>
+            )}
+          </>
         )}
 
         {step === 5 && (
-          <StylesStep
-            selectedStyles={selectedStyles}
-            toggleStyle={toggleStyle}
-          />
+          <>
+            <StylesStep
+              selectedStyles={selectedStyles}
+              toggleStyle={toggleStyle}
+            />
+
+            {stylesValid && (
+              <button
+                type='button'
+                className='button'
+                onClick={() => setStep(6)}
+              >
+                Continue
+              </button>
+            )}
+          </>
         )}
 
-        {step === 6 && <FinalStep />}
+        {step === 6 && (
+          <>
+            <FinalStep />
 
-      {step === 0 && (
-  <button
-    type='button'
-    className='button'
-    onClick={() => setStep(1)}
-  >
-    Continue
-  </button>
-)}
-
-{step === 1 &&
-  name.trim() &&
-  email.trim() &&
-  phone.trim() &&
-  password.trim() ? (
-    <button
-      type='button'
-      className='button'
-      onClick={() => setStep(2)}
-    >
-      Continue
-    </button>
-  ) : null}
-
-{step === 2 &&
-  profileImage.trim() ? (
-    <button
-      type='button'
-      className='button'
-      onClick={() => setStep(3)}
-    >
-      Continue
-    </button>
-  ) : null}
-
-{step === 3 &&
-  gender.trim() ? (
-    <button
-      type='button'
-      className='button'
-      onClick={() => setStep(4)}
-    >
-      Continue
-    </button>
-  ) : null}
-
-{step === 4 &&
-  spending.trim() ? (
-    <button
-      type='button'
-      className='button'
-      onClick={() => setStep(5)}
-    >
-      Continue
-    </button>
-  ) : null}
-
-{step === 5 &&
-  selectedStyles.length > 0 ? (
-    <button
-      type='button'
-      className='button'
-      onClick={() => setStep(6)}
-    >
-      Continue
-    </button>
-  ) : null}
-
-{step === 6 && (
-  <button
-    type='button'
-    className='button'
-    onClick={finishOnboarding}
-  >
-    {loading ? 'Creating account...' : 'Start Shopping'}
-  </button>
-)}
-
-        {step === 1 && (
-          <button
-            type='button'
-            className='button secondary'
-            onClick={() => {
-              window.location.href = '/login'
-            }}
-          >
-            Already have an account? Login
-          </button>
+            <button
+              type='button'
+              className='button'
+              onClick={finishOnboarding}
+            >
+              {loading ? 'Creating account...' : 'Start Shopping'}
+            </button>
+          </>
         )}
       </div>
     </div>
