@@ -1,4 +1,4 @@
-Z'use client'
+use client'
 
 import { useState } from 'react'
 import WelcomeStep from './WelcomeStep'
