@@ -36,7 +36,7 @@ export default function OnboardingFlow() {
     (step === 5 && selectedStyles.length === 0)
 
   async function next() {
-    if (isStepInvalid) return
+    if (isStepInvalid || loading) return
 
     if (step === 6) {
       try {
@@ -57,10 +57,7 @@ export default function OnboardingFlow() {
         localStorage.setItem('cheaperfind:profileImage', profileImage)
         localStorage.setItem('cheaperfind:gender', gender)
         localStorage.setItem('cheaperfind:spending', spending)
-        localStorage.setItem(
-          'cheaperfind:selectedStyles',
-          JSON.stringify(selectedStyles)
-        )
+        localStorage.setItem('cheaperfind:selectedStyles', JSON.stringify(selectedStyles))
 
         await supabase.from('profiles').upsert({
           id: data.user.id,
@@ -163,27 +160,20 @@ export default function OnboardingFlow() {
 
         {step === 6 && <FinalStep />}
 
-      <button
-  type='button'
-  className='button'
-  onClick={() => {
-    if (!isStepInvalid) {
-      next()
-    }
-  }}
-  disabled={isStepInvalid || loading}
-  style={{
-    opacity: isStepInvalid || loading ? 0.5 : 1,
-    background: isStepInvalid || loading ? '#bdbdbd' : '#000',
-    cursor: isStepInvalid || loading ? 'not-allowed' : 'pointer'
-  }}
->
-  {loading
-    ? 'Creating account...'
-    : step === 6
-    ? 'Start Shopping'
-    : 'Continue'}
-</button>
+        {(step === 0 || !isStepInvalid) && (
+          <button
+            type='button'
+            className='button'
+            onClick={next}
+          >
+            {loading
+              ? 'Creating account...'
+              : step === 6
+              ? 'Start Shopping'
+              : 'Continue'}
+          </button>
+        )}
+
         {step === 1 && (
           <button
             type='button'
