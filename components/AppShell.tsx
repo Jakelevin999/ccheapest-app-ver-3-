@@ -60,7 +60,7 @@ export default function AppShell({
     useState('');
 
   useEffect(() => {
-    function loadProfilePic() {
+    function load() {
       const saved =
         localStorage.getItem(
           'cheaperfind:pfp'
@@ -69,17 +69,17 @@ export default function AppShell({
       setPfp(saved);
     }
 
-    loadProfilePic();
+    load();
 
     window.addEventListener(
       'cheaperfind:pfp-changed',
-      loadProfilePic
+      load
     );
 
     return () => {
       window.removeEventListener(
         'cheaperfind:pfp-changed',
-        loadProfilePic
+        load
       );
     };
   }, []);
@@ -120,6 +120,13 @@ export default function AppShell({
               ) : (
                 <span>👤</span>
               )}
+            </Link>
+
+            <Link
+              href='/settings'
+              className='roundIcon gearIcon'
+            >
+              ⚙
             </Link>
           </div>
         </header>
