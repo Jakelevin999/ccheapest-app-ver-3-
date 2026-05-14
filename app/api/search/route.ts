@@ -7,16 +7,11 @@ const BLOCKED_MARKETPLACES = [
   'alibaba',
   'dhgate',
   'taobao',
-  'tiktok shop',
-  'tiktok',
   'wish',
   'banggood',
   'lightinthebox',
   'romwe',
-  'jollychic',
   'gearbest',
-  'made-in-china',
-  'madeinchina',
   '1688'
 ];
 
@@ -71,7 +66,9 @@ function extractRating(r:any) {
     /([0-5](?:\.\d)?)/
   );
 
-  return Number(m?.[1] || 0);
+  return Number(
+    m?.[1] || 0
+  );
 }
 
 function passesRating(r:any) {
@@ -122,19 +119,6 @@ function buildSearchQuery(
       ].words;
   }
 
-  if (
-    Array.isArray(
-      opts.specialFilters
-    ) &&
-    opts.specialFilters.length
-  ) {
-    q +=
-      ' ' +
-      opts.specialFilters.join(
-        ' '
-      );
-  }
-
   return cleanText(q);
 }
 
@@ -144,8 +128,9 @@ async function identifyImage(
   if (
     !imageData ||
     !process.env.OPENAI_API_KEY
-  )
+  ) {
     return '';
+  }
 
   try {
     const client =
@@ -161,15 +146,15 @@ async function identifyImage(
 
         input: [
           {
-            role: 'user',
+            role:'user',
 
-            content: [
+            content:[
               {
                 type:
                   'input_text',
 
                 text:
-                  'Identify the main purchasable product in this image for shopping search.'
+                  'Identify the product in this image.'
               },
 
               {
@@ -179,7 +164,7 @@ async function identifyImage(
                 image_url:
                   imageData,
 
-                detail: 'low'
+                detail:'low'
               }
             ]
           }
@@ -205,12 +190,11 @@ async function shoppingSearch(
   if (!key || !query)
     return [];
 
-  // FAST PARALLEL SEARCHES
-  const pages = [1,2,3];
+  const pages = [0,20,40];
 
   const responses =
     await Promise.all(
-      pages.map(async (p) => {
+      pages.map(async (start) => {
         const url =
           new URL(
             'https://serpapi.com/search.json'
@@ -233,9 +217,7 @@ async function shoppingSearch(
 
         url.searchParams.set(
           'start',
-          String(
-            (p - 1) * 20
-          )
+          String(start)
         );
 
         url.searchParams.set(
@@ -271,20 +253,14 @@ async function shoppingSearch(
   }
 
   const tier =
-    opts.priceTier &&
     PRICE_TIERS[
       opts.priceTier
-    ]
-      ? PRICE_TIERS[
-          opts.priceTier
-        ]
-      : null;
+    ];
 
   const maxPrice =
-    opts.maxPrice ||
     tier?.max;
 
-  return raw
+  const mapped = raw
 
     .filter(
       (r:any) =>
@@ -321,10 +297,13 @@ async function shoppingSearch(
           'Store',
 
         link:
-          r.link || '',
+          r.product_link ||
+          r.link ||
+          '',
 
         image:
           r.thumbnail ||
+          r.serpapi_thumbnail ||
           '',
 
         rating:
@@ -352,10 +331,25 @@ async function shoppingSearch(
       (p:any) =>
         !maxPrice ||
         p.extractedPrice <=
-          Number(maxPrice)
-    )
+          maxPrice
+    );
 
-    .slice(0, 40);
+  const seen =
+    new Set<string>();
+
+  return mapped.filter(
+    (p:any) => {
+      const key =
+        `${p.title}-${p.source}`.toLowerCase();
+
+      if (seen.has(key))
+        return false;
+
+      seen.add(key);
+
+      return true;
+    }
+  );
 }
 
 export async function POST(
@@ -366,13 +360,11 @@ export async function POST(
     url,
     imageData,
     specialFilters,
-    maxPrice,
     priceTier
   } = await req.json();
 
   let query = '';
 
-  // ONLY RUN IMAGE AI IF NEEDED
   if (
     imageData &&
     !description
@@ -383,15 +375,13 @@ export async function POST(
       );
 
     query = identified
-      ? `${identified} cheaper alternatives buy`
+      ? `${identified} buy`
       : '';
   }
 
   if (
     !query &&
-    description &&
-    description.trim()
-      .length > 2
+    description
   ) {
     query =
       cleanText(
@@ -410,8 +400,7 @@ export async function POST(
             /[-_/]/g,
             ' '
           )
-        ) +
-        ' cheaper alternatives buy';
+        ) + ' buy';
     } catch {
       query = url;
     }
@@ -431,7 +420,6 @@ export async function POST(
       query,
       {
         specialFilters,
-        maxPrice,
         priceTier
       }
     );
