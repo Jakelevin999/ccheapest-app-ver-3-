@@ -1,145 +1,135 @@
-'use client';
+'use client'
 
-import {
-  useEffect,
-  useState
-} from 'react';
+import { useEffect, useState } from 'react'
+import { supabase } from '../../lib/supabase'
+import { useTheme } from '../../components/ThemeProvider'
 
-import {
-  supabase
-} from '../../lib/supabase';
-
-import {
-  useTheme
-} from '../../components/ThemeProvider';
-
-const spendingOptions = [
+const spendingLevels = [
   'Saver',
   'Standard',
   'Baller'
-];
+]
 
 export default function SettingsPage() {
   const {
     theme,
     setTheme
-  } = useTheme();
+  } = useTheme()
 
   const [loading, setLoading] =
-    useState(false);
+    useState(false)
 
   const [saving, setSaving] =
-    useState(false);
+    useState(false)
 
-  const [profileName,
-    setProfileName] =
-    useState('');
+  const [profileName, setProfileName] =
+    useState('')
 
-  const [profileEmail,
-    setProfileEmail] =
-    useState('');
+  const [profileEmail, setProfileEmail] =
+    useState('')
 
-  const [profilePhone,
-    setProfilePhone] =
-    useState('');
+  const [profilePhone, setProfilePhone] =
+    useState('')
 
-  const [profileImage,
-    setProfileImage] =
-    useState('');
+  const [profileImage, setProfileImage] =
+    useState('')
 
-  const [showEmail,
-    setShowEmail] =
-    useState(false);
+  const [showEmail, setShowEmail] =
+    useState(false)
 
-  const [showPhone,
-    setShowPhone] =
-    useState(false);
+  const [showPhone, setShowPhone] =
+    useState(false)
 
-  const [newPassword,
-    setNewPassword] =
-    useState('');
+  const [newPassword, setNewPassword] =
+    useState('')
 
-  const [priceTier,
-    setPriceTier] =
-    useState('Standard');
+  const [priceTier, setPriceTier] =
+    useState('Standard')
 
   useEffect(() => {
     const savedTier =
       localStorage.getItem(
         'cheaperfind:priceTier'
-      );
-
-    if (
-      savedTier &&
-      spendingOptions.includes(
-        savedTier
       )
-    ) {
-      setPriceTier(
-        savedTier
-      );
-    }
 
-    async function load() {
-      setLoading(true);
+    if (savedTier) {
+      setPriceTier(savedTier)
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem(
+      'cheaperfind:priceTier',
+      priceTier
+    )
+
+    window.dispatchEvent(
+      new Event(
+        'cheaperfind:priceTier-changed'
+      )
+    )
+  }, [priceTier])
+
+  useEffect(() => {
+    async function loadProfile() {
+      setLoading(true)
 
       const {
         data: { user }
       } =
-        await supabase.auth.getUser();
+        await supabase.auth.getUser()
 
       if (!user) {
         window.location.href =
-          '/login';
+          '/login'
 
-        return;
+        return
       }
 
-      const { data } =
+      const { data: profile } =
         await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
-          .single();
+          .single()
 
-      if (data) {
+      if (profile) {
         setProfileName(
-          data.full_name ||
+          profile.full_name ||
             ''
-        );
+        )
 
         setProfileEmail(
-          data.email || ''
-        );
+          profile.email || ''
+        )
 
         setProfilePhone(
-          data.phone || ''
-        );
+          profile.phone || ''
+        )
 
         setProfileImage(
-          data.profile_image ||
+          profile.profile_image ||
             ''
-        );
+        )
       }
 
-      setLoading(false);
+      setLoading(false)
     }
 
-    load();
-  }, []);
+    loadProfile()
+  }, [])
 
-  async function save() {
-    setSaving(true);
+  async function saveProfile() {
+    setSaving(true)
 
     const {
       data: { user }
     } =
-      await supabase.auth.getUser();
+      await supabase.auth.getUser()
 
     if (!user) {
-      setSaving(false);
-
-      return;
+      setSaving(false)
+      return
     }
 
     await supabase
@@ -164,29 +154,18 @@ export default function SettingsPage() {
         {
           onConflict:'id'
         }
-      );
+      )
 
     localStorage.setItem(
       'cheaperfind:pfp',
       profileImage
-    );
-
-    localStorage.setItem(
-      'cheaperfind:priceTier',
-      priceTier
-    );
+    )
 
     window.dispatchEvent(
       new Event(
         'cheaperfind:pfp-changed'
       )
-    );
-
-    window.dispatchEvent(
-      new Event(
-        'cheaperfind:priceTier-changed'
-      )
-    );
+    )
 
     if (
       newPassword.trim()
@@ -196,22 +175,18 @@ export default function SettingsPage() {
           password:
             newPassword
         }
-      );
+      )
     }
 
-    setSaving(false);
+    setSaving(false)
   }
 
   if (loading) {
     return (
-      <div
-        style={{
-          padding:40
-        }}
-      >
+      <div style={{ padding:40 }}>
         Loading...
       </div>
-    );
+    )
   }
 
   return (
@@ -223,25 +198,23 @@ export default function SettingsPage() {
             accept='image/*'
             onChange={(e) => {
               const file =
-                e.target
-                  .files?.[0];
+                e.target.files?.[0]
 
-              if (!file)
-                return;
+              if (!file) return
 
               const reader =
-                new FileReader();
+                new FileReader()
 
               reader.onloadend =
                 () => {
                   setProfileImage(
                     reader.result as string
-                  );
-                };
+                  )
+                }
 
               reader.readAsDataURL(
                 file
-              );
+              )
             }}
           />
 
@@ -262,13 +235,16 @@ export default function SettingsPage() {
             value={profileName}
             onChange={(e) =>
               setProfileName(
-                e.target
-                  .value
+                e.target.value
               )
             }
           />
 
-          <div className='cleanSettingRow'>
+          <div
+            style={{
+              position:'relative'
+            }}
+          >
             <input
               className='input'
               type={
@@ -281,12 +257,24 @@ export default function SettingsPage() {
             />
 
             <button
-              className='tierButton'
+              type='button'
               onClick={() =>
                 setShowEmail(
                   !showEmail
                 )
               }
+              style={{
+                position:'absolute',
+                right:14,
+                top:'50%',
+                transform:
+                  'translateY(-50%)',
+                border:'none',
+                background:'transparent',
+                color:'var(--muted)',
+                fontWeight:700,
+                cursor:'pointer'
+              }}
             >
               {showEmail
                 ? 'Hide'
@@ -294,7 +282,11 @@ export default function SettingsPage() {
             </button>
           </div>
 
-          <div className='cleanSettingRow'>
+          <div
+            style={{
+              position:'relative'
+            }}
+          >
             <input
               className='input'
               type={
@@ -307,12 +299,24 @@ export default function SettingsPage() {
             />
 
             <button
-              className='tierButton'
+              type='button'
               onClick={() =>
                 setShowPhone(
                   !showPhone
                 )
               }
+              style={{
+                position:'absolute',
+                right:14,
+                top:'50%',
+                transform:
+                  'translateY(-50%)',
+                border:'none',
+                background:'transparent',
+                color:'var(--muted)',
+                fontWeight:700,
+                cursor:'pointer'
+              }}
             >
               {showPhone
                 ? 'Hide'
@@ -328,34 +332,24 @@ export default function SettingsPage() {
         </h2>
 
         <div className='settingsButtonGrid'>
-          {spendingOptions.map(
-            (option) => (
+          {spendingLevels.map(
+            (level) => (
               <button
-                key={option}
+                key={level}
+                type='button'
                 className={
                   priceTier ===
-                  option
+                  level
                     ? 'tierButton active'
                     : 'tierButton'
                 }
-                onClick={() => {
+                onClick={() =>
                   setPriceTier(
-                    option
-                  );
-
-                  localStorage.setItem(
-                    'cheaperfind:priceTier',
-                    option
-                  );
-
-                  window.dispatchEvent(
-                    new Event(
-                      'cheaperfind:priceTier-changed'
-                    )
-                  );
-                }}
+                    level
+                  )
+                }
               >
-                {option}
+                {level}
               </button>
             )
           )}
@@ -363,9 +357,7 @@ export default function SettingsPage() {
       </div>
 
       <div className='card compactSettingsCard'>
-        <h2>
-          Theme
-        </h2>
+        <h2>Theme</h2>
 
         <div className='settingsButtonGrid'>
           {[
@@ -375,6 +367,7 @@ export default function SettingsPage() {
           ].map((mode) => (
             <button
               key={mode}
+              type='button'
               className={
                 theme === mode
                   ? 'tierButton active'
@@ -386,8 +379,7 @@ export default function SettingsPage() {
                 )
               }
             >
-              {mode
-                .charAt(0)
+              {mode.charAt(0)
                 .toUpperCase() +
                 mode.slice(1)}
             </button>
@@ -407,8 +399,7 @@ export default function SettingsPage() {
           value={newPassword}
           onChange={(e) =>
             setNewPassword(
-              e.target
-                .value
+              e.target.value
             )
           }
         />
@@ -416,7 +407,7 @@ export default function SettingsPage() {
 
       <button
         className='button'
-        onClick={save}
+        onClick={saveProfile}
         disabled={saving}
       >
         {saving
@@ -424,5 +415,5 @@ export default function SettingsPage() {
           : 'Save Changes'}
       </button>
     </section>
-  );
+  )
 }
