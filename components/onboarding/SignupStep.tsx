@@ -1,3 +1,7 @@
+Yes — THAT is the exact file causing it.
+
+Replace it completely with this:
+
 interface Props {
   name: string
   setName: (value:string) => void
@@ -8,7 +12,10 @@ interface Props {
   password: string
   setPassword: (value:string) => void
 }
-
+const inputStyle = {
+  color:'#111',
+  background:'#fff'
+}
 export default function SignupStep({
   name,
   setName,
@@ -20,11 +27,57 @@ export default function SignupStep({
   setPassword
 }: Props) {
   return (
-    <div style={{display:'grid',gap:14}}>
-      <input className='input' placeholder='Full name' value={name} onChange={(e)=>setName(e.target.value)} />
-      <input className='input' placeholder='Email address' value={email} onChange={(e)=>setEmail(e.target.value)} />
-      <input className='input' placeholder='Phone number' value={phone} onChange={(e)=>setPhone(e.target.value)} />
-      <input className='input' type='password' placeholder='Password' value={password} onChange={(e)=>setPassword(e.target.value)} />
+    <div
+      style={{
+        display:'grid',
+        gap:14
+      }}
+    >
+      <input
+        className='input'
+        style={inputStyle}
+        placeholder='Full name'
+        value={name}
+        onChange={(e)=>
+          setName(
+            e.target.value
+          )
+        }
+      />
+      <input
+        className='input'
+        style={inputStyle}
+        placeholder='Email address'
+        value={email}
+        onChange={(e)=>
+          setEmail(
+            e.target.value
+          )
+        }
+      />
+      <input
+        className='input'
+        style={inputStyle}
+        placeholder='Phone number'
+        value={phone}
+        onChange={(e)=>
+          setPhone(
+            e.target.value
+          )
+        }
+      />
+      <input
+        className='input'
+        type='password'
+        style={inputStyle}
+        placeholder='Password'
+        value={password}
+        onChange={(e)=>
+          setPassword(
+            e.target.value
+          )
+        }
+      />
     </div>
   )
 }
