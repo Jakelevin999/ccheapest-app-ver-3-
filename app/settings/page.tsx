@@ -238,6 +238,11 @@ export default function SettingsPage() {
                 e.target.value
               )
             }
+            style={{
+              color:'var(--text)',
+              WebkitTextFillColor:
+                'var(--text)'
+            }}
           />
 
           <div
@@ -266,6 +271,11 @@ export default function SettingsPage() {
               }
               value={profileEmail}
               readOnly
+              style={{
+                color:'var(--text)',
+                WebkitTextFillColor:
+                  'var(--text)'
+              }}
             />
 
             <button
@@ -320,6 +330,11 @@ export default function SettingsPage() {
               }
               value={profilePhone}
               readOnly
+              style={{
+                color:'var(--text)',
+                WebkitTextFillColor:
+                  'var(--text)'
+              }}
             />
 
             <button
@@ -426,6 +441,11 @@ export default function SettingsPage() {
               e.target.value
             )
           }
+          style={{
+            color:'var(--text)',
+            WebkitTextFillColor:
+              'var(--text)'
+          }}
         />
       </div>
 
