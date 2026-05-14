@@ -9,10 +9,10 @@ const buttonStyle = {
   height:'56px',
   borderRadius:'18px',
   border:'none',
-  background:'#000',
+  background:'#111',
   color:'#fff',
   fontSize:'16px',
-  fontWeight:600,
+  fontWeight:700,
   cursor:'pointer'
 } as const
 
@@ -26,14 +26,15 @@ const inputStyle = {
   background:'#fff',
   color:'#111111',
   WebkitTextFillColor:'#111111',
-  caretColor:'#111111'
+  caretColor:'#111111',
+  outline:'none'
 } as const
 
 const titleStyle = {
-  fontSize:'56px',
-  lineHeight:0.9,
+  fontSize:'54px',
+  lineHeight:0.92,
   fontWeight:800,
-  marginBottom:12,
+  margin:0,
   color:'#111'
 } as const
 
@@ -65,8 +66,10 @@ export default function OnboardingPage() {
   const [spending,setSpending] =
     useState('')
 
-  const [selectedStyles,setSelectedStyles] =
-    useState<string[]>([])
+  const [
+    selectedStyles,
+    setSelectedStyles
+  ] = useState<string[]>([])
 
   const signupValid =
     name.trim() &&
@@ -146,9 +149,16 @@ export default function OnboardingPage() {
         'true'
       )
 
+      localStorage.setItem(
+        'cheaperfind:priceTier',
+        spending
+      )
+
       window.location.href =
         '/'
-    } finally {
+    }
+
+    finally {
       setLoading(false)
     }
   }
@@ -158,10 +168,7 @@ export default function OnboardingPage() {
       style={{
         position:'fixed',
         inset:0,
-        width:'100vw',
-        height:'100vh',
         background:'#f5f5f7',
-        zIndex:999999,
         display:'flex',
         alignItems:'center',
         justifyContent:'center',
@@ -173,11 +180,11 @@ export default function OnboardingPage() {
         style={{
           width:'100%',
           maxWidth:560,
+          background:'#fff',
+          borderRadius:'32px',
+          padding:'40px',
           display:'grid',
           gap:22,
-          background:'#fff',
-          padding:'40px',
-          borderRadius:'32px',
           boxShadow:
             '0 10px 40px rgba(0,0,0,0.08)'
         }}
@@ -185,7 +192,8 @@ export default function OnboardingPage() {
         {step === 0 && (
           <>
             <h1 style={titleStyle}>
-              Welcome to CheaperFind
+              Welcome to
+              CheaperFind
             </h1>
 
             <button
@@ -227,7 +235,7 @@ export default function OnboardingPage() {
               style={inputStyle}
               placeholder='Full name'
               value={name}
-              onChange={(e) =>
+              onChange={(e)=>
                 setName(
                   e.target.value
                 )
@@ -238,7 +246,7 @@ export default function OnboardingPage() {
               style={inputStyle}
               placeholder='Email'
               value={email}
-              onChange={(e) =>
+              onChange={(e)=>
                 setEmail(
                   e.target.value
                 )
@@ -249,7 +257,7 @@ export default function OnboardingPage() {
               style={inputStyle}
               placeholder='Phone'
               value={phone}
-              onChange={(e) =>
+              onChange={(e)=>
                 setPhone(
                   e.target.value
                 )
@@ -261,7 +269,7 @@ export default function OnboardingPage() {
               type='password'
               placeholder='Password'
               value={password}
-              onChange={(e) =>
+              onChange={(e)=>
                 setPassword(
                   e.target.value
                 )
@@ -295,19 +303,84 @@ export default function OnboardingPage() {
               Add Profile Photo
             </h1>
 
-            <input
-              style={inputStyle}
-              placeholder='Paste image URL'
-              value={profileImage}
-              onChange={(e) =>
-                setProfileImage(
-                  e.target.value
-                )
-              }
-            />
+            <label
+              style={{
+                width:120,
+                height:120,
+                borderRadius:'999px',
+                background:'#f1f1f3',
+                border:'1px solid #ddd',
+                overflow:'hidden',
+                cursor:'pointer',
+                display:'grid',
+                placeItems:'center',
+                margin:'0 auto'
+              }}
+            >
+              <input
+                type='file'
+                accept='image/*'
+                style={{
+                  display:'none'
+                }}
+                onChange={(e) => {
+                  const file =
+                    e.target
+                      .files?.[0]
+
+                  if (!file) return
+
+                  const reader =
+                    new FileReader()
+
+                  reader.onloadend =
+                    () => {
+                      setProfileImage(
+                        reader.result as string
+                      )
+                    }
+
+                  reader.readAsDataURL(
+                    file
+                  )
+                }}
+              />
+
+              {profileImage ? (
+                <img
+                  src={
+                    profileImage
+                  }
+                  alt='profile'
+                  style={{
+                    width:'100%',
+                    height:'100%',
+                    objectFit:'cover'
+                  }}
+                />
+              ) : (
+                <span
+                  style={{
+                    fontSize:42
+                  }}
+                >
+                  👤
+                </span>
+              )}
+            </label>
 
             <button
-              style={buttonStyle}
+              style={{
+                ...buttonStyle,
+                opacity:
+                  profileImage
+                    ? 1
+                    : 0.4,
+                pointerEvents:
+                  profileImage
+                    ? 'auto'
+                    : 'none'
+              }}
               onClick={() =>
                 setStep(3)
               }
@@ -340,8 +413,8 @@ export default function OnboardingPage() {
                     ...buttonStyle,
                     background:
                       gender === g
-                        ? '#000'
-                        : '#eee',
+                        ? '#111'
+                        : '#f1f1f3',
                     color:
                       gender === g
                         ? '#fff'
@@ -357,7 +430,17 @@ export default function OnboardingPage() {
             </div>
 
             <button
-              style={buttonStyle}
+              style={{
+                ...buttonStyle,
+                opacity:
+                  gender
+                    ? 1
+                    : 0.4,
+                pointerEvents:
+                  gender
+                    ? 'auto'
+                    : 'none'
+              }}
               onClick={() =>
                 setStep(4)
               }
@@ -390,8 +473,8 @@ export default function OnboardingPage() {
                     ...buttonStyle,
                     background:
                       spending === tier
-                        ? '#000'
-                        : '#eee',
+                        ? '#111'
+                        : '#f1f1f3',
                     color:
                       spending === tier
                         ? '#fff'
@@ -409,7 +492,17 @@ export default function OnboardingPage() {
             </div>
 
             <button
-              style={buttonStyle}
+              style={{
+                ...buttonStyle,
+                opacity:
+                  spending
+                    ? 1
+                    : 0.4,
+                pointerEvents:
+                  spending
+                    ? 'auto'
+                    : 'none'
+              }}
               onClick={() =>
                 setStep(5)
               }
@@ -450,8 +543,8 @@ export default function OnboardingPage() {
                       selectedStyles.includes(
                         style
                       )
-                        ? '#000'
-                        : '#eee',
+                        ? '#111'
+                        : '#f1f1f3',
                     color:
                       selectedStyles.includes(
                         style
