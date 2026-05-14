@@ -50,7 +50,7 @@ export default function SettingsPage() {
     useState('Standard');
 
   const [theme, setTheme] =
-    useState('Dark');
+    useState('Light');
 
   useEffect(() => {
     async function loadProfile() {
@@ -92,16 +92,6 @@ export default function SettingsPage() {
         setProfileImage(
           profile.profile_image ||
             ''
-        );
-
-        setShowEmail(
-          profile.show_email ??
-            false
-        );
-
-        setShowPhone(
-          profile.show_phone ??
-            false
         );
       }
 
@@ -159,13 +149,7 @@ export default function SettingsPage() {
           profilePhone,
 
         profile_image:
-          profileImage,
-
-        show_email:
-          showEmail,
-
-        show_phone:
-          showPhone
+          profileImage
       });
 
     if (
@@ -192,6 +176,17 @@ export default function SettingsPage() {
     document.documentElement.setAttribute(
       'data-theme',
       theme.toLowerCase()
+    );
+
+    localStorage.setItem(
+      'cheaperfind:pfp',
+      profileImage
+    );
+
+    window.dispatchEvent(
+      new Event(
+        'cheaperfind:pfp-changed'
+      )
     );
 
     setSaving(false);
@@ -257,22 +252,40 @@ export default function SettingsPage() {
           />
 
           <div
-            className='cleanSettingRow'
+            style={{
+              position:'relative'
+            }}
           >
-            <span>
-              {showEmail
-                ? profileEmail
-                : '••••••••'}
-            </span>
+            <input
+              className='input'
+              type={
+                showEmail
+                  ? 'text'
+                  : 'password'
+              }
+              value={profileEmail}
+              readOnly
+            />
 
             <button
               type='button'
-              className='tierButton'
               onClick={() =>
                 setShowEmail(
                   !showEmail
                 )
               }
+              style={{
+                position:'absolute',
+                right:14,
+                top:'50%',
+                transform:
+                  'translateY(-50%)',
+                border:'none',
+                background:'transparent',
+                color:'var(--muted)',
+                fontWeight:700,
+                cursor:'pointer'
+              }}
             >
               {showEmail
                 ? 'Hide'
@@ -281,22 +294,40 @@ export default function SettingsPage() {
           </div>
 
           <div
-            className='cleanSettingRow'
+            style={{
+              position:'relative'
+            }}
           >
-            <span>
-              {showPhone
-                ? profilePhone
-                : '••••••••'}
-            </span>
+            <input
+              className='input'
+              type={
+                showPhone
+                  ? 'text'
+                  : 'password'
+              }
+              value={profilePhone}
+              readOnly
+            />
 
             <button
               type='button'
-              className='tierButton'
               onClick={() =>
                 setShowPhone(
                   !showPhone
                 )
               }
+              style={{
+                position:'absolute',
+                right:14,
+                top:'50%',
+                transform:
+                  'translateY(-50%)',
+                border:'none',
+                background:'transparent',
+                color:'var(--muted)',
+                fontWeight:700,
+                cursor:'pointer'
+              }}
             >
               {showPhone
                 ? 'Hide'
@@ -337,9 +368,7 @@ export default function SettingsPage() {
       </div>
 
       <div className='card compactSettingsCard'>
-        <h2>
-          Theme
-        </h2>
+        <h2>Theme</h2>
 
         <div className='settingsButtonGrid'>
           {themes.map(
