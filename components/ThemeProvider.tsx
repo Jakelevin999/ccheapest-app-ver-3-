@@ -1,24 +1,28 @@
-'use client';
+'use client'
 
 import {
   createContext,
   useContext,
   useEffect,
   useState
-} from 'react';
+} from 'react'
+
+import {
+  usePathname
+} from 'next/navigation'
 
 type ThemeMode =
   | 'light'
   | 'dark'
-  | 'system';
+  | 'system'
 
 type ThemeContextType = {
-  theme: ThemeMode;
+  theme: ThemeMode
 
   setTheme: (
     theme: ThemeMode
-  ) => void;
-};
+  ) => void
+}
 
 const ThemeContext =
   createContext<ThemeContextType>(
@@ -27,105 +31,98 @@ const ThemeContext =
 
       setTheme: () => {}
     }
-  );
+  )
 
 export function ThemeProvider({
   children
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
+  const pathname =
+    usePathname()
+
   const [theme, setThemeState] =
     useState<ThemeMode>(
       'system'
-    );
+    )
+
+  const authPages = [
+    '/onboarding',
+    '/login',
+    '/signup'
+  ]
+
+  const disableTheme =
+    authPages.some((p) =>
+      pathname.startsWith(p)
+    )
 
   useEffect(() => {
     const saved =
       localStorage.getItem(
         'cheaperfind:theme'
-      ) as ThemeMode | null;
+      ) as ThemeMode | null
 
     if (
       saved === 'light' ||
       saved === 'dark' ||
       saved === 'system'
     ) {
-      setThemeState(saved);
+      setThemeState(saved)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    function applyTheme() {
-      const root =
-        document.documentElement;
+    const root =
+      document.documentElement
 
-      if (
-        theme === 'system'
-      ) {
-        const prefersDark =
-          window.matchMedia(
-            '(prefers-color-scheme: dark)'
-          ).matches;
+    if (disableTheme) {
+      root.removeAttribute(
+        'data-theme'
+      )
 
-        root.setAttribute(
-          'data-theme',
-          prefersDark
-            ? 'dark'
-            : 'light'
-        );
-      }
-
-      else {
-        root.setAttribute(
-          'data-theme',
-          theme
-        );
-      }
-
-      localStorage.setItem(
-        'cheaperfind:theme',
-        theme
-      );
-
-      window.dispatchEvent(
-        new Event(
-          'cheaperfind:theme-changed'
-        )
-      );
+      return
     }
 
-    applyTheme();
+    if (
+      theme === 'system'
+    ) {
+      const prefersDark =
+        window.matchMedia(
+          '(prefers-color-scheme: dark)'
+        ).matches
 
-    const media =
-      window.matchMedia(
-        '(prefers-color-scheme: dark)'
-      );
+      root.setAttribute(
+        'data-theme',
+        prefersDark
+          ? 'dark'
+          : 'light'
+      )
+    }
 
-    const listener = () => {
-      if (
-        theme === 'system'
-      ) {
-        applyTheme();
-      }
-    };
+    else {
+      root.setAttribute(
+        'data-theme',
+        theme
+      )
+    }
 
-    media.addEventListener(
-      'change',
-      listener
-    );
+    localStorage.setItem(
+      'cheaperfind:theme',
+      theme
+    )
 
-    return () => {
-      media.removeEventListener(
-        'change',
-        listener
-      );
-    };
-  }, [theme]);
+    window.dispatchEvent(
+      new Event(
+        'cheaperfind:theme-changed'
+      )
+    )
+  }, [theme, disableTheme])
 
   function setTheme(
     next: ThemeMode
   ) {
-    setThemeState(next);
+    setThemeState(next)
   }
 
   return (
@@ -137,11 +134,11 @@ export function ThemeProvider({
     >
       {children}
     </ThemeContext.Provider>
-  );
+  )
 }
 
 export function useTheme() {
   return useContext(
     ThemeContext
-  );
+  )
 }
