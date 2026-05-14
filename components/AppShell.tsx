@@ -60,7 +60,7 @@ export default function AppShell({
     useState('');
 
   useEffect(() => {
-    function load() {
+    function loadProfilePic() {
       const saved =
         localStorage.getItem(
           'cheaperfind:pfp'
@@ -69,17 +69,27 @@ export default function AppShell({
       setPfp(saved);
     }
 
-    load();
+    loadProfilePic();
 
     window.addEventListener(
       'cheaperfind:pfp-changed',
-      load
+      loadProfilePic
+    );
+
+    window.addEventListener(
+      'storage',
+      loadProfilePic
     );
 
     return () => {
       window.removeEventListener(
         'cheaperfind:pfp-changed',
-        load
+        loadProfilePic
+      );
+
+      window.removeEventListener(
+        'storage',
+        loadProfilePic
       );
     };
   }, []);
@@ -105,7 +115,7 @@ export default function AppShell({
             style={{
               display:'flex',
               alignItems:'center',
-              gap:12
+              gap:10
             }}
           >
             <Link
@@ -116,6 +126,12 @@ export default function AppShell({
                 <img
                   src={pfp}
                   alt='Profile'
+                  style={{
+                    width:'100%',
+                    height:'100%',
+                    objectFit:'cover',
+                    borderRadius:'999px'
+                  }}
                 />
               ) : (
                 <span>👤</span>
