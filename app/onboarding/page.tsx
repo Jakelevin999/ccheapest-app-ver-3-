@@ -23,7 +23,9 @@ const inputStyle = {
   border: '1px solid #ddd',
   padding: '0 18px',
   fontSize: '16px',
-  background: '#fff'
+  background: '#fff',
+  color: '#111',
+  caretColor: '#111'
 } as const
 
 const titleStyle = {
