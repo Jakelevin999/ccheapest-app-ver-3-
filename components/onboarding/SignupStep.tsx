@@ -1,7 +1,3 @@
-Yes — THAT is the exact file causing it.
-
-Replace it completely with this:
-
 interface Props {
   name: string
   setName: (value:string) => void
