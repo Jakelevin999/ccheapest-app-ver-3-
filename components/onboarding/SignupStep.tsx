@@ -1,5 +1,3 @@
-Replace the entire file with this exact version:
-
 interface Props {
   name: string
   setName: (value:string) => void
