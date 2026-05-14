@@ -15,6 +15,10 @@ import {
   ThemeProvider
 } from './ThemeProvider';
 
+import {
+  supabase
+} from '../lib/supabase';
+
 const tabs = [
   {
     href: '/travel',
@@ -60,13 +64,44 @@ export default function AppShell({
     useState('');
 
   useEffect(() => {
-    function loadProfilePic() {
-      const saved =
+    async function loadProfilePic() {
+      const local =
         localStorage.getItem(
           'cheaperfind:pfp'
-        ) || '';
+        );
 
-      setPfp(saved);
+      if (local) {
+        setPfp(local);
+      }
+
+      const {
+        data: { user }
+      } =
+        await supabase.auth.getUser();
+
+      if (!user) return;
+
+      const { data } =
+        await supabase
+          .from('profiles')
+          .select(
+            'profile_image'
+          )
+          .eq('id', user.id)
+          .single();
+
+      if (
+        data?.profile_image
+      ) {
+        setPfp(
+          data.profile_image
+        );
+
+        localStorage.setItem(
+          'cheaperfind:pfp',
+          data.profile_image
+        );
+      }
     }
 
     loadProfilePic();
@@ -134,15 +169,31 @@ export default function AppShell({
                   }}
                 />
               ) : (
-                <span>👤</span>
+                <div
+                  style={{
+                    width:'100%',
+                    height:'100%',
+                    display:'flex',
+                    alignItems:'center',
+                    justifyContent:'center',
+                    fontSize:18,
+                    fontWeight:700
+                  }}
+                >
+                  J
+                </div>
               )}
             </Link>
 
             <Link
               href='/settings'
-              className='roundIcon gearIcon'
+              className='roundIcon'
+              style={{
+                fontSize:18,
+                fontWeight:700
+              }}
             >
-              ⚙
+              ⋮
             </Link>
           </div>
         </header>
