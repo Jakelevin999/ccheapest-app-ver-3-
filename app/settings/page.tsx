@@ -242,6 +242,18 @@ export default function SettingsPage() {
 
           <div
             style={{
+              fontSize:12,
+              fontWeight:700,
+              color:'var(--muted)',
+              marginBottom:-6,
+              marginTop:2
+            }}
+          >
+            Email
+          </div>
+
+          <div
+            style={{
               position:'relative'
             }}
           >
@@ -280,6 +292,18 @@ export default function SettingsPage() {
                 ? 'Hide'
                 : 'Show'}
             </button>
+          </div>
+
+          <div
+            style={{
+              fontSize:12,
+              fontWeight:700,
+              color:'var(--muted)',
+              marginBottom:-6,
+              marginTop:2
+            }}
+          >
+            Phone Number
           </div>
 
           <div
