@@ -1,75 +1,33 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { signUp } from '../../lib/auth'
 import { supabase } from '../../lib/supabase'
 
-const buttonStyle = {
-  width:'100%',
-  height:'56px',
-  borderRadius:'18px',
-  border:'none',
-  background:'#111',
-  color:'#fff',
-  fontSize:'16px',
-  fontWeight:700,
-  cursor:'pointer'
-} as const
-
-const inputStyle = {
-  width:'100%',
-  height:'56px',
-  borderRadius:'18px',
-  border:'1px solid #ddd',
-  padding:'0 18px',
-  fontSize:'16px',
-  background:'#fff',
-  color:'#111111',
-  WebkitTextFillColor:'#111111',
-  caretColor:'#111111',
-  outline:'none'
-} as const
-
-const titleStyle = {
-  fontSize:'54px',
-  lineHeight:0.92,
-  fontWeight:800,
-  margin:0,
-  color:'#111'
-} as const
-
 export default function OnboardingPage() {
-  const [step,setStep] =
-    useState(0)
+  const [step, setStep] = useState(0)
+  const [loading, setLoading] = useState(false)
 
-  const [loading,setLoading] =
-    useState(false)
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [password, setPassword] = useState('')
 
-  const [name,setName] =
-    useState('')
+  const [profileImage, setProfileImage] = useState('')
+  const [gender, setGender] = useState('')
+  const [spending, setSpending] = useState('')
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([])
 
-  const [email,setEmail] =
-    useState('')
+  useEffect(() => {
+    const completed =
+      localStorage.getItem(
+        'cheaperfind:onboardingComplete'
+      )
 
-  const [phone,setPhone] =
-    useState('')
-
-  const [password,setPassword] =
-    useState('')
-
-  const [profileImage,setProfileImage] =
-    useState('')
-
-  const [gender,setGender] =
-    useState('')
-
-  const [spending,setSpending] =
-    useState('')
-
-  const [
-    selectedStyles,
-    setSelectedStyles
-  ] = useState<string[]>([])
+    if (completed === 'true') {
+      window.location.href = '/'
+    }
+  }, [])
 
   const signupValid =
     name.trim() &&
@@ -77,19 +35,28 @@ export default function OnboardingPage() {
     phone.trim() &&
     password.trim()
 
-  function toggleStyle(
-    style:string
-  ) {
-    setSelectedStyles(
-      current =>
-        current.includes(style)
-          ? current.filter(
-              x => x !== style
-            )
-          : [
-              ...current,
-              style
-            ]
+  const photoValid =
+    profileImage.trim()
+
+  const genderValid =
+    gender.trim()
+
+  const spendingValid =
+    spending.trim()
+
+  const stylesValid =
+    selectedStyles.length > 0
+
+  function toggleStyle(style:string) {
+    setSelectedStyles(current =>
+      current.includes(style)
+        ? current.filter(
+            x => x !== style
+          )
+        : [
+            ...current,
+            style
+          ]
     )
   }
 
@@ -102,20 +69,16 @@ export default function OnboardingPage() {
       const {
         data,
         error
-      } =
-        await signUp(
-          email,
-          password
-        )
+      } = await signUp(
+        email,
+        password
+      )
 
       if (
         error ||
         !data?.user
       ) {
-        alert(
-          'Signup failed'
-        )
-
+        alert('Signup failed')
         return
       }
 
@@ -154,8 +117,7 @@ export default function OnboardingPage() {
         spending
       )
 
-      window.location.href =
-        '/'
+      window.location.href = '/'
     }
 
     finally {
@@ -168,36 +130,46 @@ export default function OnboardingPage() {
       style={{
         position:'fixed',
         inset:0,
-        background:'#f5f5f7',
+        width:'100vw',
+        height:'100vh',
+        minHeight:'100vh',
         display:'flex',
         alignItems:'center',
         justifyContent:'center',
-        padding:'24px',
+        padding:24,
+        background:'#f5f5f7',
+        zIndex:999999,
         overflowY:'auto'
       }}
     >
       <div
         style={{
           width:'100%',
-          maxWidth:560,
-          background:'#fff',
-          borderRadius:'32px',
-          padding:'40px',
+          maxWidth:520,
           display:'grid',
-          gap:22,
+          gap:18,
+          background:'#fff',
+          padding:'34px',
+          borderRadius:'30px',
           boxShadow:
             '0 10px 40px rgba(0,0,0,0.08)'
         }}
       >
         {step === 0 && (
           <>
-            <h1 style={titleStyle}>
+            <h1
+              style={{
+                fontSize:56,
+                lineHeight:0.9,
+                margin:0
+              }}
+            >
               Welcome to
               CheaperFind
             </h1>
 
             <button
-              style={buttonStyle}
+              className='button'
               onClick={() =>
                 setStep(1)
               }
@@ -206,33 +178,34 @@ export default function OnboardingPage() {
             </button>
 
             <button
-              style={{
-                background:'transparent',
-                border:'none',
-                color:'#666',
-                fontSize:'15px',
-                cursor:'pointer',
-                marginTop:'-6px'
-              }}
               onClick={() => {
                 window.location.href =
                   '/login'
               }}
+              style={{
+                background:'transparent',
+                border:'none',
+                color:'#666',
+                cursor:'pointer',
+                fontSize:15
+              }}
             >
-              Already have an
-              account? Login
+              Already have an account?
+              Login
             </button>
           </>
         )}
 
         {step === 1 && (
           <>
-            <h1 style={titleStyle}>
-              Create Account
-            </h1>
+            <h1>Create Account</h1>
 
             <input
-              style={inputStyle}
+              className='input'
+              style={{
+                color:'#111',
+                WebkitTextFillColor:'#111'
+              }}
               placeholder='Full name'
               value={name}
               onChange={(e)=>
@@ -243,7 +216,11 @@ export default function OnboardingPage() {
             />
 
             <input
-              style={inputStyle}
+              className='input'
+              style={{
+                color:'#111',
+                WebkitTextFillColor:'#111'
+              }}
               placeholder='Email'
               value={email}
               onChange={(e)=>
@@ -254,7 +231,11 @@ export default function OnboardingPage() {
             />
 
             <input
-              style={inputStyle}
+              className='input'
+              style={{
+                color:'#111',
+                WebkitTextFillColor:'#111'
+              }}
               placeholder='Phone'
               value={phone}
               onChange={(e)=>
@@ -265,8 +246,12 @@ export default function OnboardingPage() {
             />
 
             <input
-              style={inputStyle}
+              className='input'
               type='password'
+              style={{
+                color:'#111',
+                WebkitTextFillColor:'#111'
+              }}
               placeholder='Password'
               value={password}
               onChange={(e)=>
@@ -277,20 +262,17 @@ export default function OnboardingPage() {
             />
 
             <button
-              style={{
-                ...buttonStyle,
-                opacity:
-                  signupValid
-                    ? 1
-                    : 0.4,
-                pointerEvents:
-                  signupValid
-                    ? 'auto'
-                    : 'none'
-              }}
+              className='button'
+              disabled={!signupValid}
               onClick={() =>
                 setStep(2)
               }
+              style={{
+                opacity:
+                  signupValid
+                    ? 1
+                    : 0.4
+              }}
             >
               Continue
             </button>
@@ -299,9 +281,7 @@ export default function OnboardingPage() {
 
         {step === 2 && (
           <>
-            <h1 style={titleStyle}>
-              Add Profile Photo
-            </h1>
+            <h1>Add Profile Photo</h1>
 
             <label
               style={{
@@ -348,9 +328,7 @@ export default function OnboardingPage() {
 
               {profileImage ? (
                 <img
-                  src={
-                    profileImage
-                  }
+                  src={profileImage}
                   alt='profile'
                   style={{
                     width:'100%',
@@ -370,20 +348,17 @@ export default function OnboardingPage() {
             </label>
 
             <button
-              style={{
-                ...buttonStyle,
-                opacity:
-                  profileImage
-                    ? 1
-                    : 0.4,
-                pointerEvents:
-                  profileImage
-                    ? 'auto'
-                    : 'none'
-              }}
+              className='button'
+              disabled={!photoValid}
               onClick={() =>
                 setStep(3)
               }
+              style={{
+                opacity:
+                  photoValid
+                    ? 1
+                    : 0.4
+              }}
             >
               Continue
             </button>
@@ -392,58 +367,53 @@ export default function OnboardingPage() {
 
         {step === 3 && (
           <>
-            <h1 style={titleStyle}>
-              Select Gender
-            </h1>
+            <h1>Select Gender</h1>
 
             <div
               style={{
                 display:'grid',
-                gap:12
+                gap:10
               }}
             >
               {[
-                'Male',
-                'Female',
-                'Other'
-              ].map((g) => (
+                'Mens',
+                'Womens',
+                'Unisex'
+              ].map(item => (
                 <button
-                  key={g}
+                  key={item}
+                  className='button'
+                  onClick={() =>
+                    setGender(item)
+                  }
                   style={{
-                    ...buttonStyle,
                     background:
-                      gender === g
-                        ? '#111'
-                        : '#f1f1f3',
+                      gender === item
+                        ? '#000'
+                        : '#ececf1',
                     color:
-                      gender === g
+                      gender === item
                         ? '#fff'
                         : '#111'
                   }}
-                  onClick={() =>
-                    setGender(g)
-                  }
                 >
-                  {g}
+                  {item}
                 </button>
               ))}
             </div>
 
             <button
-              style={{
-                ...buttonStyle,
-                opacity:
-                  gender
-                    ? 1
-                    : 0.4,
-                pointerEvents:
-                  gender
-                    ? 'auto'
-                    : 'none'
-              }}
+              className='button'
+              disabled={!genderValid}
               onClick={() =>
                 setStep(4)
               }
+              style={{
+                opacity:
+                  genderValid
+                    ? 1
+                    : 0.4
+              }}
             >
               Continue
             </button>
@@ -452,60 +422,53 @@ export default function OnboardingPage() {
 
         {step === 4 && (
           <>
-            <h1 style={titleStyle}>
-              Spending Level
-            </h1>
+            <h1>Select Spending Tier</h1>
 
             <div
               style={{
                 display:'grid',
-                gap:12
+                gap:10
               }}
             >
               {[
                 'Saver',
                 'Standard',
                 'Baller'
-              ].map((tier) => (
+              ].map(item => (
                 <button
-                  key={tier}
+                  key={item}
+                  className='button'
+                  onClick={() =>
+                    setSpending(item)
+                  }
                   style={{
-                    ...buttonStyle,
                     background:
-                      spending === tier
-                        ? '#111'
-                        : '#f1f1f3',
+                      spending === item
+                        ? '#000'
+                        : '#ececf1',
                     color:
-                      spending === tier
+                      spending === item
                         ? '#fff'
                         : '#111'
                   }}
-                  onClick={() =>
-                    setSpending(
-                      tier
-                    )
-                  }
                 >
-                  {tier}
+                  {item}
                 </button>
               ))}
             </div>
 
             <button
-              style={{
-                ...buttonStyle,
-                opacity:
-                  spending
-                    ? 1
-                    : 0.4,
-                pointerEvents:
-                  spending
-                    ? 'auto'
-                    : 'none'
-              }}
+              className='button'
+              disabled={!spendingValid}
               onClick={() =>
                 setStep(5)
               }
+              style={{
+                opacity:
+                  spendingValid
+                    ? 1
+                    : 0.4
+              }}
             >
               Continue
             </button>
@@ -514,14 +477,11 @@ export default function OnboardingPage() {
 
         {step === 5 && (
           <>
-            <h1 style={titleStyle}>
-              Pick Your Style
-            </h1>
+            <h1>Select Styles</h1>
 
             <div
               style={{
-                display:'flex',
-                flexWrap:'wrap',
+                display:'grid',
                 gap:10
               }}
             >
@@ -529,22 +489,21 @@ export default function OnboardingPage() {
                 'Streetwear',
                 'Minimal',
                 'Luxury',
-                'Vintage',
-                'Sporty',
-                'Designer'
-              ].map((style) => (
+                'Vintage'
+              ].map(style => (
                 <button
                   key={style}
+                  className='button'
+                  onClick={() =>
+                    toggleStyle(style)
+                  }
                   style={{
-                    ...buttonStyle,
-                    width:'auto',
-                    padding:'0 20px',
                     background:
                       selectedStyles.includes(
                         style
                       )
-                        ? '#111'
-                        : '#f1f1f3',
+                        ? '#000'
+                        : '#ececf1',
                     color:
                       selectedStyles.includes(
                         style
@@ -552,11 +511,6 @@ export default function OnboardingPage() {
                         ? '#fff'
                         : '#111'
                   }}
-                  onClick={() =>
-                    toggleStyle(
-                      style
-                    )
-                  }
                 >
                   {style}
                 </button>
@@ -564,14 +518,37 @@ export default function OnboardingPage() {
             </div>
 
             <button
-              style={buttonStyle}
+              className='button'
+              disabled={!stylesValid}
+              onClick={() =>
+                setStep(6)
+              }
+              style={{
+                opacity:
+                  stylesValid
+                    ? 1
+                    : 0.4
+              }}
+            >
+              Continue
+            </button>
+          </>
+        )}
+
+        {step === 6 && (
+          <>
+            <h1>Finish</h1>
+
+            <button
+              className='button'
               onClick={
                 finishOnboarding
               }
+              disabled={loading}
             >
               {loading
-                ? 'Creating Account...'
-                : 'Finish'}
+                ? 'Creating account...'
+                : 'Start Shopping'}
             </button>
           </>
         )}
