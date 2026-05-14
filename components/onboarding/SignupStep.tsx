@@ -1,3 +1,5 @@
+Replace the entire file with this exact version:
+
 interface Props {
   name: string
   setName: (value:string) => void
@@ -9,8 +11,9 @@ interface Props {
   setPassword: (value:string) => void
 }
 const inputStyle = {
-  color:'#111',
-  background:'#fff'
+  color:'#111111',
+  background:'#ffffff',
+  WebkitTextFillColor:'#111111'
 }
 export default function SignupStep({
   name,
@@ -32,6 +35,7 @@ export default function SignupStep({
       <input
         className='input'
         style={inputStyle}
+        autoComplete='off'
         placeholder='Full name'
         value={name}
         onChange={(e)=>
@@ -43,6 +47,7 @@ export default function SignupStep({
       <input
         className='input'
         style={inputStyle}
+        autoComplete='off'
         placeholder='Email address'
         value={email}
         onChange={(e)=>
@@ -54,6 +59,7 @@ export default function SignupStep({
       <input
         className='input'
         style={inputStyle}
+        autoComplete='off'
         placeholder='Phone number'
         value={phone}
         onChange={(e)=>
@@ -66,6 +72,7 @@ export default function SignupStep({
         className='input'
         type='password'
         style={inputStyle}
+        autoComplete='off'
         placeholder='Password'
         value={password}
         onChange={(e)=>
