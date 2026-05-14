@@ -15,7 +15,8 @@ const spendingLevels = [
 
 const themes = [
   'Dark',
-  'Light'
+  'Light',
+  'System'
 ];
 
 export default function SettingsPage() {
@@ -50,7 +51,7 @@ export default function SettingsPage() {
     useState('Standard');
 
   const [theme, setTheme] =
-    useState('Light');
+    useState('System');
 
   useEffect(() => {
     async function loadProfile() {
@@ -113,6 +114,20 @@ export default function SettingsPage() {
 
       if (savedTheme) {
         setTheme(savedTheme);
+
+        if (
+          savedTheme ===
+          'System'
+        ) {
+          document.documentElement.removeAttribute(
+            'data-theme'
+          );
+        } else {
+          document.documentElement.setAttribute(
+            'data-theme',
+            savedTheme.toLowerCase()
+          );
+        }
       }
 
       setLoading(false);
@@ -173,10 +188,18 @@ export default function SettingsPage() {
       theme
     );
 
-    document.documentElement.setAttribute(
-      'data-theme',
-      theme.toLowerCase()
-    );
+    if (
+      theme === 'System'
+    ) {
+      document.documentElement.removeAttribute(
+        'data-theme'
+      );
+    } else {
+      document.documentElement.setAttribute(
+        'data-theme',
+        theme.toLowerCase()
+      );
+    }
 
     localStorage.setItem(
       'cheaperfind:pfp',
