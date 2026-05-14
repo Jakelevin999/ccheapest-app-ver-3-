@@ -1,50 +1,71 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { supabase } from '../../lib/supabase'
+import {
+  useEffect,
+  useState
+} from 'react';
+
+import { supabase } from '../../lib/supabase';
+
+const spendingLevels = [
+  'Saver',
+  'Standard',
+  'Baller'
+];
+
+const themes = [
+  'Dark',
+  'Light'
+];
 
 export default function SettingsPage() {
   const [loading, setLoading] =
-    useState(false)
+    useState(false);
 
   const [saving, setSaving] =
-    useState(false)
+    useState(false);
 
   const [profileName, setProfileName] =
-    useState('')
+    useState('');
 
   const [profileEmail, setProfileEmail] =
-    useState('')
+    useState('');
 
   const [profilePhone, setProfilePhone] =
-    useState('')
+    useState('');
 
   const [profileImage, setProfileImage] =
-    useState('')
-
-  const [hideEmail, setHideEmail] =
-    useState(true)
-
-  const [hidePhone, setHidePhone] =
-    useState(true)
+    useState('');
 
   const [newPassword, setNewPassword] =
-    useState('')
+    useState('');
+
+  const [showEmail, setShowEmail] =
+    useState(false);
+
+  const [showPhone, setShowPhone] =
+    useState(false);
+
+  const [spendingLevel, setSpendingLevel] =
+    useState('Standard');
+
+  const [theme, setTheme] =
+    useState('Dark');
 
   useEffect(() => {
     async function loadProfile() {
-      setLoading(true)
+      setLoading(true);
 
       const {
         data: { user }
       } =
-        await supabase.auth.getUser()
+        await supabase.auth.getUser();
 
       if (!user) {
         window.location.href =
-          '/login'
+          '/login';
 
-        return
+        return;
       }
 
       const { data: profile } =
@@ -52,99 +73,128 @@ export default function SettingsPage() {
           .from('profiles')
           .select('*')
           .eq('id', user.id)
-          .single()
+          .single();
 
       if (profile) {
         setProfileName(
           profile.full_name ||
-            profile.username ||
             ''
-        )
+        );
 
         setProfileEmail(
           profile.email || ''
-        )
+        );
 
         setProfilePhone(
           profile.phone || ''
-        )
+        );
 
         setProfileImage(
           profile.profile_image ||
-            profile.avatar_url ||
             ''
-        )
+        );
+
+        setShowEmail(
+          profile.show_email ??
+            false
+        );
+
+        setShowPhone(
+          profile.show_phone ??
+            false
+        );
       }
 
-      setLoading(false)
+      const savedTier =
+        localStorage.getItem(
+          'cheaperfind:priceTier'
+        );
+
+      if (savedTier) {
+        setSpendingLevel(
+          savedTier
+        );
+      }
+
+      const savedTheme =
+        localStorage.getItem(
+          'cheaperfind:theme'
+        );
+
+      if (savedTheme) {
+        setTheme(savedTheme);
+      }
+
+      setLoading(false);
     }
 
-    loadProfile()
-  }, [])
+    loadProfile();
+  }, []);
 
   async function saveProfile() {
-    setSaving(true)
+    setSaving(true);
 
     const {
       data: { user }
     } =
-      await supabase.auth.getUser()
+      await supabase.auth.getUser();
 
     if (!user) {
-      setSaving(false)
-      return
+      setSaving(false);
+      return;
     }
 
-    const updates = {
-      id: user.id,
+    await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
 
-      full_name: profileName,
-      username: profileName,
+        full_name:
+          profileName,
 
-      email: profileEmail,
-      phone: profilePhone,
+        email:
+          profileEmail,
 
-      profile_image: profileImage,
-      avatar_url: profileImage
+        phone:
+          profilePhone,
+
+        profile_image:
+          profileImage,
+
+        show_email:
+          showEmail,
+
+        show_phone:
+          showPhone
+      });
+
+    if (
+      newPassword.trim()
+    ) {
+      await supabase.auth.updateUser(
+        {
+          password:
+            newPassword
+        }
+      );
     }
 
-    const { error } =
-      await supabase
-        .from('profiles')
-        .upsert(updates, {
-          onConflict: 'id'
-        })
+    localStorage.setItem(
+      'cheaperfind:priceTier',
+      spendingLevel
+    );
 
-    if (error) {
-      console.error(error)
+    localStorage.setItem(
+      'cheaperfind:theme',
+      theme
+    );
 
-      alert(error.message)
+    document.documentElement.setAttribute(
+      'data-theme',
+      theme.toLowerCase()
+    );
 
-      setSaving(false)
-
-      return
-    }
-
-    if (newPassword.trim()) {
-      const {
-        error: passwordError
-      } =
-        await supabase.auth.updateUser(
-          {
-            password: newPassword
-          }
-        )
-
-      if (passwordError) {
-        alert(
-          passwordError.message
-        )
-      }
-    }
-
-    setSaving(false)
-
-    window.location.reload()
+    setSaving(false);
   }
 
   if (loading) {
@@ -152,7 +202,7 @@ export default function SettingsPage() {
       <div style={{ padding: 40 }}>
         Loading...
       </div>
-    )
+    );
   }
 
   return (
@@ -164,22 +214,23 @@ export default function SettingsPage() {
             accept='image/*'
             onChange={(e) => {
               const file =
-                e.target.files?.[0]
+                e.target.files?.[0];
 
-              if (!file) return
+              if (!file) return;
 
               const reader =
-                new FileReader()
+                new FileReader();
 
-              reader.onloadend = () => {
-                setProfileImage(
-                  reader.result as string
-                )
-              }
+              reader.onloadend =
+                () => {
+                  setProfileImage(
+                    reader.result as string
+                  );
+                };
 
               reader.readAsDataURL(
                 file
-              )
+              );
             }}
           />
 
@@ -206,110 +257,50 @@ export default function SettingsPage() {
           />
 
           <div
-            style={{
-              position: 'relative'
-            }}
+            className='cleanSettingRow'
           >
-            <input
-              className='input'
-              placeholder='Email'
-              type={
-                hideEmail
-                  ? 'password'
-                  : 'text'
-              }
-              value={profileEmail}
-              onChange={(e) =>
-                setProfileEmail(
-                  e.target.value
-                )
-              }
-              style={{
-                paddingRight: 70
-              }}
-            />
+            <span>
+              {showEmail
+                ? profileEmail
+                : '••••••••'}
+            </span>
 
             <button
               type='button'
+              className='tierButton'
               onClick={() =>
-                setHideEmail(
-                  !hideEmail
+                setShowEmail(
+                  !showEmail
                 )
               }
-              style={{
-                position:
-                  'absolute',
-                right: 16,
-                top: '50%',
-                transform:
-                  'translateY(-50%)',
-                background:
-                  'none',
-                border: 'none',
-                color:
-                  '#8e8e98',
-                fontSize: 12,
-                fontWeight: 800,
-                cursor: 'pointer'
-              }}
             >
-              {hideEmail
-                ? 'SHOW'
-                : 'HIDE'}
+              {showEmail
+                ? 'Hide'
+                : 'Show'}
             </button>
           </div>
 
           <div
-            style={{
-              position: 'relative'
-            }}
+            className='cleanSettingRow'
           >
-            <input
-              className='input'
-              placeholder='Phone'
-              type={
-                hidePhone
-                  ? 'password'
-                  : 'text'
-              }
-              value={profilePhone}
-              onChange={(e) =>
-                setProfilePhone(
-                  e.target.value
-                )
-              }
-              style={{
-                paddingRight: 70
-              }}
-            />
+            <span>
+              {showPhone
+                ? profilePhone
+                : '••••••••'}
+            </span>
 
             <button
               type='button'
+              className='tierButton'
               onClick={() =>
-                setHidePhone(
-                  !hidePhone
+                setShowPhone(
+                  !showPhone
                 )
               }
-              style={{
-                position:
-                  'absolute',
-                right: 16,
-                top: '50%',
-                transform:
-                  'translateY(-50%)',
-                background:
-                  'none',
-                border: 'none',
-                color:
-                  '#8e8e98',
-                fontSize: 12,
-                fontWeight: 800,
-                cursor: 'pointer'
-              }}
             >
-              {hidePhone
-                ? 'SHOW'
-                : 'HIDE'}
+              {showPhone
+                ? 'Hide'
+                : 'Show'}
             </button>
           </div>
         </div>
@@ -317,69 +308,58 @@ export default function SettingsPage() {
 
       <div className='card compactSettingsCard'>
         <h2>
-          Appearance
+          Spending Level
         </h2>
 
         <div className='settingsButtonGrid'>
-          <button className='tierButton active'>
-            Light
-          </button>
-
-          <button className='tierButton'>
-            Dark
-          </button>
-
-          <button className='tierButton'>
-            System
-          </button>
+          {spendingLevels.map(
+            (level) => (
+              <button
+                key={level}
+                type='button'
+                className={
+                  spendingLevel ===
+                  level
+                    ? 'tierButton active'
+                    : 'tierButton'
+                }
+                onClick={() =>
+                  setSpendingLevel(
+                    level
+                  )
+                }
+              >
+                {level}
+              </button>
+            )
+          )}
         </div>
       </div>
 
       <div className='card compactSettingsCard'>
         <h2>
-          Default Spending
+          Theme
         </h2>
 
         <div className='settingsButtonGrid'>
-          <button className='tierButton'>
-            Saver
-          </button>
-
-          <button className='tierButton active'>
-            Standard
-          </button>
-
-          <button className='tierButton'>
-            Baller
-          </button>
-        </div>
-      </div>
-
-      <div className='card compactSettingsCard'>
-        <h2>
-          Search Preferences
-        </h2>
-
-        <div className='settingsStack'>
-          <label className='cleanSettingRow'>
-            <span>
-              Show similar dupes
-            </span>
-
-            <input
-              type='checkbox'
-              defaultChecked
-            />
-          </label>
-
-          <label className='cleanSettingRow'>
-            <span>
-              Include resale
-              marketplaces
-            </span>
-
-            <input type='checkbox' />
-          </label>
+          {themes.map(
+            (t) => (
+              <button
+                key={t}
+                type='button'
+                className={
+                  theme === t
+                    ? 'tierButton active'
+                    : 'tierButton'
+                }
+                onClick={() =>
+                  setTheme(t)
+                }
+              >
+                {t}
+              </button>
+            )
+          )}
         </div>
       </div>
 
@@ -388,19 +368,17 @@ export default function SettingsPage() {
           Change Password
         </h2>
 
-        <div className='settingsStack'>
-          <input
-            className='input'
-            type='password'
-            placeholder='New Password'
-            value={newPassword}
-            onChange={(e) =>
-              setNewPassword(
-                e.target.value
-              )
-            }
-          />
-        </div>
+        <input
+          className='input'
+          type='password'
+          placeholder='New Password'
+          value={newPassword}
+          onChange={(e) =>
+            setNewPassword(
+              e.target.value
+            )
+          }
+        />
       </div>
 
       <button
@@ -413,5 +391,5 @@ export default function SettingsPage() {
           : 'Save Changes'}
       </button>
     </section>
-  )
+  );
 }
