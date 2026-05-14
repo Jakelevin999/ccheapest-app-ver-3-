@@ -114,20 +114,6 @@ export default function SettingsPage() {
 
       if (savedTheme) {
         setTheme(savedTheme);
-
-        if (
-          savedTheme ===
-          'System'
-        ) {
-          document.documentElement.removeAttribute(
-            'data-theme'
-          );
-        } else {
-          document.documentElement.setAttribute(
-            'data-theme',
-            savedTheme.toLowerCase()
-          );
-        }
       }
 
       setLoading(false);
@@ -183,23 +169,22 @@ export default function SettingsPage() {
       spendingLevel
     );
 
+    window.dispatchEvent(
+      new Event(
+        'cheaperfind:priceTier-changed'
+      )
+    );
+
     localStorage.setItem(
       'cheaperfind:theme',
       theme
     );
 
-    if (
-      theme === 'System'
-    ) {
-      document.documentElement.removeAttribute(
-        'data-theme'
-      );
-    } else {
-      document.documentElement.setAttribute(
-        'data-theme',
-        theme.toLowerCase()
-      );
-    }
+    window.dispatchEvent(
+      new Event(
+        'cheaperfind:theme-changed'
+      )
+    );
 
     localStorage.setItem(
       'cheaperfind:pfp',
