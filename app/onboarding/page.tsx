@@ -55,11 +55,6 @@ export default function OnboardingPage() {
     phone.trim() &&
     password.trim()
 
-  const photoValid = profileImage.trim()
-  const genderValid = gender.trim()
-  const spendingValid = spending.trim()
-  const stylesValid = selectedStyles.length > 0
-
   function toggleStyle(style: string) {
     setSelectedStyles(current =>
       current.includes(style)
@@ -197,16 +192,13 @@ export default function OnboardingPage() {
             <button
               style={{
                 ...buttonStyle,
-                opacity: signupValid ? 1 : 0.4,
-                pointerEvents: signupValid ? 'auto' : 'none'
+                opacity: signupValid && !loading ? 1 : 0.4,
+                pointerEvents: signupValid && !loading ? 'auto' : 'none'
               }}
-              disabled={!signupValid}
-              onClick={() => {
-                if (!signupValid) return
-                setStep(2)
-              }}
+              disabled={!signupValid || loading}
+              onClick={finishOnboarding}
             >
-              Continue
+              {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </>
         )}
