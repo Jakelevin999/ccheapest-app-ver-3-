@@ -1,27 +1,50 @@
 'use client';
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
-type Theme = 'light' | 'dark' | 'system';
-const ThemeContext = createContext<{ theme: Theme; setTheme: (theme: Theme) => void }>({ theme: 'light', setTheme: () => {} });
+import {
+  useEffect
+} from 'react';
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('light');
-
+export function ThemeProvider({
+  children
+}: {
+  children: React.ReactNode;
+}) {
   useEffect(() => {
-    const saved = (localStorage.getItem('cheaperfind:theme') as Theme | null) || 'light';
-    setThemeState(saved);
+    function applyTheme() {
+      const savedTheme =
+        localStorage.getItem(
+          'cheaperfind:theme'
+        ) || 'System';
+
+      if (
+        savedTheme ===
+        'System'
+      ) {
+        document.documentElement.removeAttribute(
+          'data-theme'
+        );
+      } else {
+        document.documentElement.setAttribute(
+          'data-theme',
+          savedTheme.toLowerCase()
+        );
+      }
+    }
+
+    applyTheme();
+
+    window.addEventListener(
+      'cheaperfind:theme-changed',
+      applyTheme
+    );
+
+    return () => {
+      window.removeEventListener(
+        'cheaperfind:theme-changed',
+        applyTheme
+      );
+    };
   }, []);
 
-  useEffect(() => {
-    const root = document.documentElement;
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const active = theme === 'system' ? (systemDark ? 'dark' : 'light') : theme;
-    root.dataset.theme = active;
-    localStorage.setItem('cheaperfind:theme', theme);
-  }, [theme]);
-
-  const value = useMemo(() => ({ theme, setTheme: setThemeState }), [theme]);
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return <>{children}</>;
 }
-
-export function useTheme() { return useContext(ThemeContext); }
