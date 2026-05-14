@@ -1,8 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '../lib/supabase';
+import {
+  useEffect,
+  useState
+} from 'react';
+
+import {
+  useRouter
+} from 'next/navigation';
+
+import { supabase }
+  from '../lib/supabase';
 
 const specialOptions = [
   'BPA Free',
@@ -28,7 +36,8 @@ function compressImage(
 ): Promise<string> {
   return new Promise(
     (resolve, reject) => {
-      const img = new Image();
+      const img =
+        new Image();
 
       const reader =
         new FileReader();
@@ -54,7 +63,8 @@ function compressImage(
 
           canvas.width =
             Math.round(
-              img.width * scale
+              img.width *
+                scale
             );
 
           canvas.height =
@@ -68,15 +78,12 @@ function compressImage(
               '2d'
             );
 
-          if (!ctx) {
-            reject(
+          if (!ctx)
+            return reject(
               new Error(
                 'Canvas not supported'
               )
             );
-
-            return;
-          }
 
           ctx.drawImage(
             img,
@@ -94,14 +101,17 @@ function compressImage(
           );
         };
 
-        img.onerror = reject;
+        img.onerror =
+          reject;
 
-        img.src = String(
-          reader.result
-        );
+        img.src =
+          String(
+            reader.result
+          );
       };
 
-      reader.onerror = reject;
+      reader.onerror =
+        reject;
 
       reader.readAsDataURL(
         file
@@ -111,37 +121,39 @@ function compressImage(
 }
 
 export default function Home() {
-  const [description, setDescription] =
+  const [description,
+    setDescription] =
     useState('');
 
-  const [url, setUrl] =
+  const [url,
+    setUrl] =
     useState('');
 
-  const [imageData, setImageData] =
-    useState<string>('');
+  const [imageData,
+    setImageData] =
+    useState('');
 
-  const [filtersOpen, setFiltersOpen] =
+  const [filtersOpen,
+    setFiltersOpen] =
     useState(false);
 
-  const [
-    specialFilters,
-    setSpecialFilters
-  ] = useState<string[]>([]);
+  const [specialFilters,
+    setSpecialFilters] =
+    useState<string[]>([]);
 
-  const [priceTier, setPriceTier] =
+  const [priceTier,
+    setPriceTier] =
     useState('Standard');
 
-  const [loading, setLoading] =
+  const [loading,
+    setLoading] =
     useState(false);
 
-  const router = useRouter();
+  const router =
+    useRouter();
 
   useEffect(() => {
-    setTimeout(() => {
-      loadProfile();
-    }, 0);
-
-    async function loadProfile() {
+    async function init() {
       const {
         data: { user }
       } =
@@ -160,6 +172,26 @@ export default function Home() {
         'true'
       );
 
+      const savedTier =
+        localStorage.getItem(
+          priceTierKey
+        );
+
+      if (
+        savedTier &&
+        priceTiers.includes(
+          savedTier
+        )
+      ) {
+        setPriceTier(
+          savedTier
+        );
+      }
+    }
+
+    init();
+
+    function syncTier() {
       const saved =
         localStorage.getItem(
           priceTierKey
@@ -167,24 +199,46 @@ export default function Home() {
 
       if (
         saved &&
-        priceTiers.includes(saved)
+        priceTiers.includes(
+          saved
+        )
       ) {
-        setPriceTier(saved);
+        setPriceTier(
+          saved
+        );
       }
     }
+
+    window.addEventListener(
+      'cheaperfind:priceTier-changed',
+      syncTier
+    );
+
+    return () => {
+      window.removeEventListener(
+        'cheaperfind:priceTier-changed',
+        syncTier
+      );
+    };
   }, [router]);
 
   function toggleSpecial(
-    name: string
+    name:string
   ) {
     setSpecialFilters(
       (current) =>
-        current.includes(name)
+        current.includes(
+          name
+        )
           ? current.filter(
               (x) =>
-                x !== name
+                x !==
+                name
             )
-          : [...current, name]
+          : [
+              ...current,
+              name
+            ]
     );
   }
 
@@ -193,16 +247,13 @@ export default function Home() {
   ) {
     if (!file) return;
 
-    setLoading(true);
+    const compressed =
+      await compressImage(
+        file
+      );
 
-    compressImage(file).then(
-      (compressed) => {
-        setImageData(
-          compressed
-        );
-
-        setLoading(false);
-      }
+    setImageData(
+      compressed
     );
   }
 
@@ -210,40 +261,50 @@ export default function Home() {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        '/api/search',
-        {
-          method: 'POST',
+      const res =
+        await fetch(
+          '/api/search',
+          {
+            method:
+              'POST',
 
-          headers: {
-            'Content-Type':
-              'application/json'
-          },
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
 
-          body: JSON.stringify({
-            description:
-              description.trim(),
+            body:
+              JSON.stringify(
+                {
+                  description:
+                    description.trim(),
 
-            url: url.trim(),
+                  url:
+                    url.trim(),
 
-            imageData,
+                  imageData,
 
-            specialFilters,
+                  specialFilters,
 
-            priceTier
-          })
-        }
-      );
+                  priceTier
+                }
+              )
+          }
+        );
 
       const data =
         await res.json();
 
       localStorage.setItem(
         'cheaperfind:lastResults',
-        JSON.stringify(data)
+        JSON.stringify(
+          data
+        )
       );
 
-      router.push('/results');
+      router.push(
+        '/results'
+      );
     } finally {
       setLoading(false);
     }
@@ -251,16 +312,21 @@ export default function Home() {
 
   return (
     <section className='shopHome'>
-      <h1>Shop</h1>
+      <h1>
+        Shop
+      </h1>
 
       <div className='card searchBox shopCard'>
         <input
           className='input'
           placeholder='Describe product'
-          value={description}
+          value={
+            description
+          }
           onChange={(e) =>
             setDescription(
-              e.target.value
+              e.target
+                .value
             )
           }
         />
@@ -271,7 +337,8 @@ export default function Home() {
           value={url}
           onChange={(e) =>
             setUrl(
-              e.target.value
+              e.target
+                .value
             )
           }
         />
