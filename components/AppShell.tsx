@@ -1,16 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+
 import {
   useEffect,
   useState
 } from 'react';
 
-import { usePathname } from 'next/navigation';
+import {
+  usePathname
+} from 'next/navigation';
 
-import { ThemeProvider } from './ThemeProvider';
-
-import { supabase } from '../lib/supabase';
+import {
+  ThemeProvider
+} from './ThemeProvider';
 
 const tabs = [
   {
@@ -57,68 +60,27 @@ export default function AppShell({
     useState('');
 
   useEffect(() => {
-    let channel: any;
+    function loadProfilePic() {
+      const saved =
+        localStorage.getItem(
+          'cheaperfind:pfp'
+        ) || '';
 
-    async function loadProfile() {
-      const {
-        data: { user }
-      } =
-        await supabase.auth.getUser();
-
-      if (!user) return;
-
-      const { data: profile } =
-        await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-      const image =
-        profile?.profile_image ||
-        profile?.avatar_url ||
-        '';
-
-      setPfp(image);
+      setPfp(saved);
     }
 
-    async function setupRealtime() {
-      const {
-        data: { user }
-      } =
-        await supabase.auth.getUser();
+    loadProfilePic();
 
-      if (!user) return;
-
-      channel = supabase
-        .channel(
-          'profile-changes'
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'profiles',
-            filter: `id=eq.${user.id}`
-          },
-          () => {
-            loadProfile();
-          }
-        )
-        .subscribe();
-    }
-
-    loadProfile();
-
-    setupRealtime();
+    window.addEventListener(
+      'cheaperfind:pfp-changed',
+      loadProfilePic
+    );
 
     return () => {
-      if (channel) {
-        supabase.removeChannel(
-          channel
-        );
-      }
+      window.removeEventListener(
+        'cheaperfind:pfp-changed',
+        loadProfilePic
+      );
     };
   }, []);
 
@@ -141,39 +103,23 @@ export default function AppShell({
 
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12
+              display:'flex',
+              alignItems:'center',
+              gap:12
             }}
           >
-            <div className='profileBubble'>
+            <Link
+              href='/settings'
+              className='profileBubble'
+            >
               {pfp ? (
                 <img
                   src={pfp}
                   alt='Profile'
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    borderRadius:
-                      '999px',
-                    objectFit:
-                      'cover',
-                    display:
-                      'block'
-                  }}
                 />
               ) : (
-                <span>
-                  👤
-                </span>
+                <span>👤</span>
               )}
-            </div>
-
-            <Link
-              href='/settings'
-              className='roundIcon gearIcon'
-            >
-              ⚙
             </Link>
           </div>
         </header>
