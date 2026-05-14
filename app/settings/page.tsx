@@ -5,56 +5,82 @@ import {
   useState
 } from 'react';
 
-import { supabase } from '../../lib/supabase';
+import {
+  supabase
+} from '../../lib/supabase';
 
-const spendingLevels = [
+import {
+  useTheme
+} from '../../components/ThemeProvider';
+
+const spendingOptions = [
   'Saver',
   'Standard',
   'Baller'
 ];
 
-const themes = [
-  'Dark',
-  'Light',
-  'System'
-];
-
 export default function SettingsPage() {
+  const {
+    theme,
+    setTheme
+  } = useTheme();
+
   const [loading, setLoading] =
     useState(false);
 
   const [saving, setSaving] =
     useState(false);
 
-  const [profileName, setProfileName] =
+  const [profileName,
+    setProfileName] =
     useState('');
 
-  const [profileEmail, setProfileEmail] =
+  const [profileEmail,
+    setProfileEmail] =
     useState('');
 
-  const [profilePhone, setProfilePhone] =
+  const [profilePhone,
+    setProfilePhone] =
     useState('');
 
-  const [profileImage, setProfileImage] =
+  const [profileImage,
+    setProfileImage] =
     useState('');
 
-  const [newPassword, setNewPassword] =
-    useState('');
-
-  const [showEmail, setShowEmail] =
+  const [showEmail,
+    setShowEmail] =
     useState(false);
 
-  const [showPhone, setShowPhone] =
+  const [showPhone,
+    setShowPhone] =
     useState(false);
 
-  const [spendingLevel, setSpendingLevel] =
+  const [newPassword,
+    setNewPassword] =
+    useState('');
+
+  const [priceTier,
+    setPriceTier] =
     useState('Standard');
 
-  const [theme, setTheme] =
-    useState('System');
-
   useEffect(() => {
-    async function loadProfile() {
+    const savedTier =
+      localStorage.getItem(
+        'cheaperfind:priceTier'
+      );
+
+    if (
+      savedTier &&
+      spendingOptions.includes(
+        savedTier
+      )
+    ) {
+      setPriceTier(
+        savedTier
+      );
+    }
+
+    async function load() {
       setLoading(true);
 
       const {
@@ -69,60 +95,40 @@ export default function SettingsPage() {
         return;
       }
 
-      const { data: profile } =
+      const { data } =
         await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();
 
-      if (profile) {
+      if (data) {
         setProfileName(
-          profile.full_name ||
+          data.full_name ||
             ''
         );
 
         setProfileEmail(
-          profile.email || ''
+          data.email || ''
         );
 
         setProfilePhone(
-          profile.phone || ''
+          data.phone || ''
         );
 
         setProfileImage(
-          profile.profile_image ||
+          data.profile_image ||
             ''
         );
-      }
-
-      const savedTier =
-        localStorage.getItem(
-          'cheaperfind:priceTier'
-        );
-
-      if (savedTier) {
-        setSpendingLevel(
-          savedTier
-        );
-      }
-
-      const savedTheme =
-        localStorage.getItem(
-          'cheaperfind:theme'
-        );
-
-      if (savedTheme) {
-        setTheme(savedTheme);
       }
 
       setLoading(false);
     }
 
-    loadProfile();
+    load();
   }, []);
 
-  async function saveProfile() {
+  async function save() {
     setSaving(true);
 
     const {
@@ -132,26 +138,55 @@ export default function SettingsPage() {
 
     if (!user) {
       setSaving(false);
+
       return;
     }
 
     await supabase
       .from('profiles')
-      .upsert({
-        id: user.id,
+      .upsert(
+        {
+          id: user.id,
 
-        full_name:
-          profileName,
+          full_name:
+            profileName,
 
-        email:
-          profileEmail,
+          email:
+            profileEmail,
 
-        phone:
-          profilePhone,
+          phone:
+            profilePhone,
 
-        profile_image:
-          profileImage
-      });
+          profile_image:
+            profileImage
+        },
+
+        {
+          onConflict:'id'
+        }
+      );
+
+    localStorage.setItem(
+      'cheaperfind:pfp',
+      profileImage
+    );
+
+    localStorage.setItem(
+      'cheaperfind:priceTier',
+      priceTier
+    );
+
+    window.dispatchEvent(
+      new Event(
+        'cheaperfind:pfp-changed'
+      )
+    );
+
+    window.dispatchEvent(
+      new Event(
+        'cheaperfind:priceTier-changed'
+      )
+    );
 
     if (
       newPassword.trim()
@@ -164,45 +199,16 @@ export default function SettingsPage() {
       );
     }
 
-    localStorage.setItem(
-      'cheaperfind:priceTier',
-      spendingLevel
-    );
-
-    window.dispatchEvent(
-      new Event(
-        'cheaperfind:priceTier-changed'
-      )
-    );
-
-    localStorage.setItem(
-      'cheaperfind:theme',
-      theme
-    );
-
-    window.dispatchEvent(
-      new Event(
-        'cheaperfind:theme-changed'
-      )
-    );
-
-    localStorage.setItem(
-      'cheaperfind:pfp',
-      profileImage
-    );
-
-    window.dispatchEvent(
-      new Event(
-        'cheaperfind:pfp-changed'
-      )
-    );
-
     setSaving(false);
   }
 
   if (loading) {
     return (
-      <div style={{ padding: 40 }}>
+      <div
+        style={{
+          padding:40
+        }}
+      >
         Loading...
       </div>
     );
@@ -217,9 +223,11 @@ export default function SettingsPage() {
             accept='image/*'
             onChange={(e) => {
               const file =
-                e.target.files?.[0];
+                e.target
+                  .files?.[0];
 
-              if (!file) return;
+              if (!file)
+                return;
 
               const reader =
                 new FileReader();
@@ -254,16 +262,13 @@ export default function SettingsPage() {
             value={profileName}
             onChange={(e) =>
               setProfileName(
-                e.target.value
+                e.target
+                  .value
               )
             }
           />
 
-          <div
-            style={{
-              position:'relative'
-            }}
-          >
+          <div className='cleanSettingRow'>
             <input
               className='input'
               type={
@@ -276,24 +281,12 @@ export default function SettingsPage() {
             />
 
             <button
-              type='button'
+              className='tierButton'
               onClick={() =>
                 setShowEmail(
                   !showEmail
                 )
               }
-              style={{
-                position:'absolute',
-                right:14,
-                top:'50%',
-                transform:
-                  'translateY(-50%)',
-                border:'none',
-                background:'transparent',
-                color:'var(--muted)',
-                fontWeight:700,
-                cursor:'pointer'
-              }}
             >
               {showEmail
                 ? 'Hide'
@@ -301,11 +294,7 @@ export default function SettingsPage() {
             </button>
           </div>
 
-          <div
-            style={{
-              position:'relative'
-            }}
-          >
+          <div className='cleanSettingRow'>
             <input
               className='input'
               type={
@@ -318,24 +307,12 @@ export default function SettingsPage() {
             />
 
             <button
-              type='button'
+              className='tierButton'
               onClick={() =>
                 setShowPhone(
                   !showPhone
                 )
               }
-              style={{
-                position:'absolute',
-                right:14,
-                top:'50%',
-                transform:
-                  'translateY(-50%)',
-                border:'none',
-                background:'transparent',
-                color:'var(--muted)',
-                fontWeight:700,
-                cursor:'pointer'
-              }}
             >
               {showPhone
                 ? 'Hide'
@@ -351,24 +328,34 @@ export default function SettingsPage() {
         </h2>
 
         <div className='settingsButtonGrid'>
-          {spendingLevels.map(
-            (level) => (
+          {spendingOptions.map(
+            (option) => (
               <button
-                key={level}
-                type='button'
+                key={option}
                 className={
-                  spendingLevel ===
-                  level
+                  priceTier ===
+                  option
                     ? 'tierButton active'
                     : 'tierButton'
                 }
-                onClick={() =>
-                  setSpendingLevel(
-                    level
-                  )
-                }
+                onClick={() => {
+                  setPriceTier(
+                    option
+                  );
+
+                  localStorage.setItem(
+                    'cheaperfind:priceTier',
+                    option
+                  );
+
+                  window.dispatchEvent(
+                    new Event(
+                      'cheaperfind:priceTier-changed'
+                    )
+                  );
+                }}
               >
-                {level}
+                {option}
               </button>
             )
           )}
@@ -376,27 +363,35 @@ export default function SettingsPage() {
       </div>
 
       <div className='card compactSettingsCard'>
-        <h2>Theme</h2>
+        <h2>
+          Theme
+        </h2>
 
         <div className='settingsButtonGrid'>
-          {themes.map(
-            (t) => (
-              <button
-                key={t}
-                type='button'
-                className={
-                  theme === t
-                    ? 'tierButton active'
-                    : 'tierButton'
-                }
-                onClick={() =>
-                  setTheme(t)
-                }
-              >
-                {t}
-              </button>
-            )
-          )}
+          {[
+            'dark',
+            'light',
+            'system'
+          ].map((mode) => (
+            <button
+              key={mode}
+              className={
+                theme === mode
+                  ? 'tierButton active'
+                  : 'tierButton'
+              }
+              onClick={() =>
+                setTheme(
+                  mode as any
+                )
+              }
+            >
+              {mode
+                .charAt(0)
+                .toUpperCase() +
+                mode.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -412,7 +407,8 @@ export default function SettingsPage() {
           value={newPassword}
           onChange={(e) =>
             setNewPassword(
-              e.target.value
+              e.target
+                .value
             )
           }
         />
@@ -420,7 +416,7 @@ export default function SettingsPage() {
 
       <button
         className='button'
-        onClick={saveProfile}
+        onClick={save}
         disabled={saving}
       >
         {saving
