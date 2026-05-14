@@ -74,14 +74,19 @@ export default function OnboardingPage() {
         password
       )
 
-      if (
-        error ||
-        !data?.user
-      ) {
-        alert('Signup failed')
-        return
-      }
+     if (
+  error ||
+  !data?.user
+) {
+  console.log(error)
 
+  alert(
+    error?.message ||
+    'Signup failed'
+  )
+
+  return
+}
       await supabase
         .from('profiles')
         .upsert({
