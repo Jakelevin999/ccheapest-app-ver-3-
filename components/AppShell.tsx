@@ -20,36 +20,7 @@ import {
 } from '../lib/supabase';
 
 const tabs = [
-  {
-    href: '/travel',
-    label: 'Travel',
-    icon: '✈'
-  },
-
-  {
-    href: '/style',
-    label: 'Style',
-    icon: '🧥'
-  },
-
-  {
-    href: '/',
-    label: 'Shop',
-    icon: '⌕',
-    center: true
-  },
-
-  {
-    href: '/favorites',
-    label: 'Saved',
-    icon: '♡'
-  },
-
-  {
-    href: '/cart',
-    label: 'Cart',
-    icon: '🛒'
-  }
+  { href: '/style', label: 'Swipe Shop', icon: '♡', center: true }
 ];
 
 export default function AppShell({
